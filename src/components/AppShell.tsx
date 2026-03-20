@@ -28,10 +28,41 @@ const navItems = [
 
 function Navigation() {
   const pathname = usePathname();
+  const [enabledModules, setEnabledModules] = React.useState({
+    bloodTests: true,
+    mood: true,
+    goals: true,
+    events: true,
+  });
 
   React.useEffect(() => {
     startReminderChecker();
+    
+    const updateModules = () => {
+      setEnabledModules({
+        bloodTests: localStorage.getItem('hrt_enable_blood_tests') !== 'false',
+        mood: localStorage.getItem('hrt_enable_mood') !== 'false',
+        goals: localStorage.getItem('hrt_enable_goals') !== 'false',
+        events: localStorage.getItem('hrt_enable_events') !== 'false',
+      });
+    };
+    
+    updateModules();
+    window.addEventListener('storage', updateModules);
+    window.addEventListener('hrt_settings_changed', updateModules);
+    return () => {
+      window.removeEventListener('storage', updateModules);
+      window.removeEventListener('hrt_settings_changed', updateModules);
+    };
   }, []);
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.href === '/blood-tests' && !enabledModules.bloodTests) return false;
+    if (item.href === '/mood' && !enabledModules.mood) return false;
+    if (item.href === '/goals' && !enabledModules.goals) return false;
+    if (item.href === '/events' && !enabledModules.events) return false;
+    return true;
+  });
 
   return (
     <>
@@ -45,7 +76,7 @@ function Navigation() {
         </div>
 
         <nav className="sidebar-nav">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <button
                 className={`nav-item ${pathname === item.href ? 'active' : ''}`}
@@ -61,7 +92,7 @@ function Navigation() {
       {/* Mobile Bottom Nav */}
       <nav className="bottom-nav">
         <ul className="bottom-nav-items">
-          {navItems.slice(0, 5).map((item) => (
+          {visibleNavItems.slice(0, 5).map((item) => (
             <li key={item.href}>
               <Link href={item.href}>
                 <button
