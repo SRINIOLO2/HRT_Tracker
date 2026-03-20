@@ -25,9 +25,14 @@ export default function MedicationsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<Omit<Medication, 'id'>>(emptyMed);
+  
   const [showDoseModal, setShowDoseModal] = useState(false);
   const [doseForMed, setDoseForMed] = useState<Medication | null>(null);
+  const [editingDoseId, setEditingDoseId] = useState<number | null>(null);
   const [doseForm, setDoseForm] = useState({ dose: 0, unit: 'mg', notes: '', forgotten: false });
+
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedDoses, setSelectedDoses] = useState<Set<number>>(new Set());
 
   function openAddForm() {
     setForm({ ...emptyMed, createdAt: Date.now(), color: defaultColors[medications.length % defaultColors.length] });
@@ -62,23 +67,65 @@ export default function MedicationsPage() {
   function openDoseLog(med: Medication) {
     setDoseForMed(med);
     setDoseForm({ dose: med.defaultDose, unit: med.defaultUnit, notes: '', forgotten: false });
+    setEditingDoseId(null);
+    setShowDoseModal(true);
+  }
+
+  function openEditDoseLog(dose: DoseLog, med: Medication | undefined) {
+    if (!med) return;
+    setDoseForMed(med);
+    setDoseForm({ dose: dose.dose, unit: dose.unit, notes: dose.notes, forgotten: dose.forgotten });
+    setEditingDoseId(dose.id!);
     setShowDoseModal(true);
   }
 
   async function saveDoseLog() {
     if (!doseForMed) return;
-    await db.doseLogs.add({
-      medicationId: doseForMed.id!,
-      medicationName: doseForMed.name,
-      dose: doseForm.dose,
-      unit: doseForm.unit,
-      route: doseForMed.route,
-      takenAt: Date.now(),
-      forgotten: doseForm.forgotten,
-      late: false,
-      notes: doseForm.notes,
-    });
+    
+    if (editingDoseId) {
+      await db.doseLogs.update(editingDoseId, {
+        dose: doseForm.dose,
+        unit: doseForm.unit,
+        notes: doseForm.notes,
+        forgotten: doseForm.forgotten,
+      });
+    } else {
+      await db.doseLogs.add({
+        medicationId: doseForMed.id!,
+        medicationName: doseForMed.name,
+        dose: doseForm.dose,
+        unit: doseForm.unit,
+        route: doseForMed.route,
+        takenAt: Date.now(),
+        forgotten: doseForm.forgotten,
+        late: false,
+        notes: doseForm.notes,
+      });
+    }
     setShowDoseModal(false);
+    setEditingDoseId(null);
+  }
+
+  async function deleteDoseLog(id: number) {
+    if (confirm('Delete this dose record?')) {
+      await db.doseLogs.delete(id);
+    }
+  }
+
+  async function batchDeleteSelected() {
+    if (selectedDoses.size === 0) return;
+    if (confirm(`WARNING: Please make sure you have backed up your data first!\n\nAre you sure you want to delete these ${selectedDoses.size} selected doses?`)) {
+      await Promise.all(Array.from(selectedDoses).map(id => db.doseLogs.delete(id)));
+      setSelectedDoses(new Set());
+      setBatchMode(false);
+    }
+  }
+
+  function toggleDoseSelect(id: number) {
+    const nextSet = new Set(selectedDoses);
+    if (nextSet.has(id)) nextSet.delete(id);
+    else nextSet.add(id);
+    setSelectedDoses(nextSet);
   }
 
   async function markForgotten(med: Medication) {
@@ -151,29 +198,62 @@ export default function MedicationsPage() {
       {/* Dose History */}
       {doseLogs.length > 0 && (
         <div className="section mt-24">
-          <div className="section-header">
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 className="section-title">Dose History</h2>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {batchMode ? (
+                <>
+                  <button className="btn btn-secondary btn-sm" onClick={() => { setBatchMode(false); setSelectedDoses(new Set()); }}>Cancel</button>
+                  <button className="btn btn-danger btn-sm" onClick={batchDeleteSelected} disabled={selectedDoses.size === 0}>
+                    <Trash2 size={14} /> Delete Selected ({selectedDoses.size})
+                  </button>
+                </>
+              ) : (
+                <button className="btn btn-ghost btn-sm" onClick={() => setBatchMode(true)}>Select Multiple</button>
+              )}
+            </div>
           </div>
           <div className="card" style={{ padding: 0 }}>
-            {doseLogs.map((dose) => (
-              <div key={dose.id} className="list-item">
-                <div className="list-icon" style={{
-                  background: dose.forgotten ? 'var(--accent-danger-soft)' : 'var(--accent-success-soft)',
-                  color: dose.forgotten ? 'var(--accent-danger)' : 'var(--accent-success)',
-                }}>
-                  {dose.forgotten ? <AlertCircle size={18} /> : <CalendarCheck size={18} />}
-                </div>
-                <div className="list-content">
-                  <div className="list-title">{dose.medicationName}</div>
-                  <div className="list-subtitle">
-                    {dose.dose} {dose.unit} · {dose.route} · {format(new Date(dose.takenAt), 'MMM d, yyyy h:mm a')}
+            {doseLogs.map((dose) => {
+              const medReference = medications.find(m => m.id === dose.medicationId);
+              return (
+                <div key={dose.id} className="list-item" onClick={() => batchMode && toggleDoseSelect(dose.id!)} style={{ cursor: batchMode ? 'pointer' : 'default' }}>
+                  {batchMode && (
+                    <input 
+                      type="checkbox" 
+                      checked={selectedDoses.has(dose.id!)} 
+                      onChange={() => toggleDoseSelect(dose.id!)}
+                      style={{ marginRight: '8px', cursor: 'pointer', width: '18px', height: '18px', accentColor: 'var(--accent-primary)' }}
+                    />
+                  )}
+                  <div className="list-icon" style={{
+                    background: dose.forgotten ? 'var(--accent-danger-soft)' : 'var(--accent-success-soft)',
+                    color: dose.forgotten ? 'var(--accent-danger)' : 'var(--accent-success)',
+                  }}>
+                    {dose.forgotten ? <AlertCircle size={18} /> : <CalendarCheck size={18} />}
                   </div>
+                  <div className="list-content">
+                    <div className="list-title">{dose.medicationName}</div>
+                    <div className="list-subtitle">
+                      {dose.dose} {dose.unit} · {dose.route} · {format(new Date(dose.takenAt), 'MMM d, yyyy h:mm a')}
+                    </div>
+                  </div>
+                  {!batchMode && (
+                    <div className="list-actions">
+                      {medReference && (
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditDoseLog(dose, medReference)}><Edit2 size={14} /></button>
+                      )}
+                      <button className="btn btn-ghost btn-icon btn-sm" onClick={() => deleteDoseLog(dose.id!)} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
+                    </div>
+                  )}
+                  {batchMode && (
+                    <span className={`badge ${dose.forgotten ? 'badge-forgotten' : 'badge-taken'}`}>
+                      {dose.forgotten ? 'Missed' : 'Taken'}
+                    </span>
+                  )}
                 </div>
-                <span className={`badge ${dose.forgotten ? 'badge-forgotten' : 'badge-taken'}`}>
-                  {dose.forgotten ? 'Missed' : 'Taken'}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -250,7 +330,7 @@ export default function MedicationsPage() {
       {showDoseModal && doseForMed && (
         <div className="modal-overlay" onClick={() => setShowDoseModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h2 className="modal-title">Log Dose — {doseForMed.name}</h2>
+            <h2 className="modal-title">{editingDoseId ? 'Edit Dose Log' : 'Log Dose'} — {doseForMed.name}</h2>
 
             <div className="form-row">
               <div className="form-group">

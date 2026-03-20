@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { AppShell } from '@/components/AppShell';
 
@@ -11,7 +12,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'HRT Tracker — Hormone Health Tracker',
-  description: 'A privacy-first, offline-capable health tracking app for hormone medication management. Track doses, blood tests, mood, and transition goals.',
+  description: 'A privacy-first, offline-capable health tracking app for hormone medication management. Track doses, blood tests, mood, and personal goals.',
   keywords: 'HRT, hormone tracking, medication tracker, health app, blood test tracker',
   manifest: '/manifest.json',
   icons: {
@@ -28,8 +29,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
+        <Script id="register-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(
+                  function(registration) { console.log('ServiceWorker registration successful'); },
+                  function(err) { console.log('ServiceWorker registration failed: ', err); }
+                );
+              });
+            }
+          `}
+        </Script>
         <AppShell>{children}</AppShell>
       </body>
     </html>
   );
 }
+

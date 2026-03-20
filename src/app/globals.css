@@ -799,6 +799,18 @@ body {
   flex-shrink: 0;
 }
 
+.quick-action-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.quick-action-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
 .quick-action-text {
   flex: 1;
 }
