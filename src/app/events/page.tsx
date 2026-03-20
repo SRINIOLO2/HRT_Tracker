@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type LifeEvent } from '@/lib/db';
 import { format, differenceInYears, differenceInDays } from 'date-fns';
-import { Plus, CalendarHeart, Edit2, Trash2, Bell, BellOff, Calendar } from 'lucide-react';
+import { Plus, CalendarHeart, Edit2, Trash2, Bell, BellOff, Calendar, CheckSquare, Square, AlertTriangle } from 'lucide-react';
 
 const categoryOptions = [
   { value: 'milestone', label: 'Milestone', color: '#f5a623' },
@@ -49,6 +49,14 @@ export default function EventsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<Omit<LifeEvent, 'id'>>(emptyEvent);
 
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
+  const [batchEnabled, setBatchEnabled] = useState(false);
+
+  useEffect(() => {
+    setBatchEnabled(localStorage.getItem('hrt_batch_delete') === 'true');
+  }, []);
+
   function openAddForm() {
     setForm({ ...emptyEvent, createdAt: Date.now(), date: Date.now() });
     setEditingId(null);
@@ -85,6 +93,22 @@ export default function EventsPage() {
     });
   }
 
+  async function batchDeleteSelected() {
+    if (selectedEvents.size === 0) return;
+    if (confirm(`WARNING: Please make sure you have backed up your data first!\n\nAre you sure you want to delete these ${selectedEvents.size} selected events?`)) {
+      await Promise.all(Array.from(selectedEvents).map(id => db.events.delete(id)));
+      setSelectedEvents(new Set());
+      setBatchMode(false);
+    }
+  }
+
+  function toggleEventSelect(id: number) {
+    const nextSet = new Set(selectedEvents);
+    if (nextSet.has(id)) nextSet.delete(id);
+    else nextSet.add(id);
+    setSelectedEvents(nextSet);
+  }
+
   // Group events by year
   const groupedByYear: Record<string, LifeEvent[]> = {};
   events.forEach((event: LifeEvent) => {
@@ -117,9 +141,23 @@ export default function EventsPage() {
           <h1 className="page-title">Timeline</h1>
           <p className="page-subtitle">Your personal health journey</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddForm}>
-          <Plus size={16} /> Add Event
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {events.length > 0 && batchEnabled && (
+            batchMode ? (
+              <>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setBatchMode(false); setSelectedEvents(new Set()); }}>Cancel</button>
+                <button className="btn btn-danger btn-sm" onClick={batchDeleteSelected} disabled={selectedEvents.size === 0}>
+                  <Trash2 size={14} /> Delete Selected ({selectedEvents.size})
+                </button>
+              </>
+            ) : (
+              <button className="btn btn-ghost btn-sm" onClick={() => setBatchMode(true)}>Select Multiple</button>
+            )
+          )}
+          <button className="btn btn-primary" onClick={openAddForm}>
+            <Plus size={16} /> Add Event
+          </button>
+        </div>
       </div>
 
       {/* Upcoming Anniversaries */}
@@ -180,8 +218,16 @@ export default function EventsPage() {
                         border: '2px solid var(--bg-secondary)',
                       }} />
 
-                      <div className="card-header">
+                      <div className="card-header" onClick={() => batchMode && toggleEventSelect(event.id!)} style={{ cursor: batchMode ? 'pointer' : 'default' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                          {batchMode && (
+                            <input 
+                              type="checkbox" 
+                              checked={selectedEvents.has(event.id!)} 
+                              onChange={() => toggleEventSelect(event.id!)}
+                              style={{ marginRight: '8px', cursor: 'pointer', width: '18px', height: '18px', accentColor: 'var(--accent-primary)' }}
+                            />
+                          )}
                           <span className="badge" style={{ background: `${cat.color}20`, color: cat.color, fontSize: 'var(--font-size-xs)' }}>
                             {cat.label}
                           </span>
@@ -192,18 +238,20 @@ export default function EventsPage() {
                             {formatTimeSince(event.date)}
                           </span>
                         </div>
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          <button
-                            className="btn btn-ghost btn-icon btn-sm"
-                            onClick={() => toggleAnniversary(event)}
-                            title={event.notifyOnAnniversary ? 'Disable anniversary reminder' : 'Enable anniversary reminder'}
-                            style={{ color: event.notifyOnAnniversary ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}
-                          >
-                            {event.notifyOnAnniversary ? <Bell size={14} /> : <BellOff size={14} />}
-                          </button>
-                          <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditForm(event)}><Edit2 size={14} /></button>
-                          <button className="btn btn-ghost btn-icon btn-sm" onClick={() => deleteEvent(event.id!)} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
-                        </div>
+                        {!batchMode && (
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button
+                              className="btn btn-ghost btn-icon btn-sm"
+                              onClick={() => toggleAnniversary(event)}
+                              title={event.notifyOnAnniversary ? 'Disable anniversary reminder' : 'Enable anniversary reminder'}
+                              style={{ color: event.notifyOnAnniversary ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}
+                            >
+                              {event.notifyOnAnniversary ? <Bell size={14} /> : <BellOff size={14} />}
+                            </button>
+                            <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditForm(event)}><Edit2 size={14} /></button>
+                            <button className="btn btn-ghost btn-icon btn-sm" onClick={() => deleteEvent(event.id!)} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
+                          </div>
+                        )}
                       </div>
 
                       <h4 style={{ fontSize: 'var(--font-size-md)', fontWeight: 600, margin: '4px 0 6px' }}>
