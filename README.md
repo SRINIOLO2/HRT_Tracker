@@ -2,7 +2,7 @@
 
 A privacy-first, offline-capable health tracking app for hormone medication management.
 
-**Version:** 1.0.1
+**Version:** 1.0.2
 
 ---
 
@@ -75,6 +75,13 @@ npm run build
 ```
 
 ## 📋 Changelog
+
+### v1.0.2
+
+- **Bug Fixes:** Resolved TypeScript build error in CSV export feature
+- **Settings UI:** Fixed broken GitHub release link to point to main repository
+- **Downloads:** App version added to CSV and JSON backup file names
+- **UX:** Improved tooltips for data privacy and sync standards
 
 ### v1.0.1
 

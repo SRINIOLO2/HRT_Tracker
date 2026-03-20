@@ -278,7 +278,7 @@ export default function SettingsPage() {
           
           <button className="btn btn-ghost" onClick={async () => {
             try {
-              let csvData = [];
+              let csvData: any[] = [];
               let headers: string[] = [];
               let filename = '';
 
@@ -585,7 +585,7 @@ export default function SettingsPage() {
           <Info size={16} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
             <strong>HRT Tracker</strong>{' '}
-            <a href={`https://github.com/SRINIOLO2/HRT_Tracker/releases/tag/v${pkg.version}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>
+            <a href="https://github.com/SRINIOLO2/HRT_Tracker" target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>
               v{pkg.version}
             </a><br />
             A privacy-first, offline-capable health tracking app for hormone medication management.<br />
