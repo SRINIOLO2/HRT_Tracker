@@ -105,7 +105,7 @@ export default function GoalsPage() {
   function removeMilestone(index: number) {
     setForm({
       ...form,
-      milestones: form.milestones.filter((_, i) => i !== index),
+      milestones: form.milestones.filter((_: any, i: number) => i !== index),
     });
   }
 
@@ -119,8 +119,8 @@ export default function GoalsPage() {
     setForm({ ...form, milestones });
   }
 
-  const activeGoals = goals.filter(g => !g.completed);
-  const completedGoals = goals.filter(g => g.completed);
+  const activeGoals = goals.filter((g: Goal) => !g.completed);
+  const completedGoals = goals.filter((g: Goal) => g.completed);
 
   return (
     <div>
@@ -176,7 +176,7 @@ export default function GoalsPage() {
             <div className="section">
               <h2 className="section-title mb-16">Active Goals</h2>
               <div style={{ display: 'grid', gap: '16px' }}>
-                {activeGoals.map(goal => {
+                {activeGoals.map((goal: Goal) => {
                   const daysLeft = differenceInDays(new Date(goal.targetDate), new Date());
                   const color = categoryColors[goal.category] || '#9ba1bc';
                   return (
@@ -206,9 +206,9 @@ export default function GoalsPage() {
                         </div>
                         {!isBatchMode && (
                           <div className="list-actions">
-                            <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); openEditForm(goal); }}><Edit2 size={14} /></button>
-                            <button className="btn btn-success btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); toggleComplete(goal); }}><Check size={14} /></button>
-                            <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); deleteGoal(goal.id!); }} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
+                            <button className="btn btn-ghost btn-icon btn-sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openEditForm(goal); }}><Edit2 size={14} /></button>
+                            <button className="btn btn-success btn-icon btn-sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); toggleComplete(goal); }}><Check size={14} /></button>
+                            <button className="btn btn-ghost btn-icon btn-sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); deleteGoal(goal.id!); }} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
                           </div>
                         )}
                       </div>
@@ -243,7 +243,7 @@ export default function GoalsPage() {
                           <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: '8px' }}>
                             Milestones
                           </div>
-                          {goal.milestones.map((ms, i) => (
+                          {goal.milestones.map((ms: GoalMilestone, i: number) => (
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: 'var(--font-size-sm)' }}>
                               <span style={{ color: ms.completed ? 'var(--accent-success)' : 'var(--text-tertiary)' }}>
                                 {ms.completed ? '✓' : '○'}
@@ -267,7 +267,7 @@ export default function GoalsPage() {
             <div className="section mt-24">
               <h2 className="section-title mb-16" style={{ color: 'var(--text-tertiary)' }}>Completed Goals</h2>
               <div className="card" style={{ padding: 0, opacity: 0.7 }}>
-                {completedGoals.map(goal => (
+                {completedGoals.map((goal: Goal) => (
                   <div key={goal.id} className="list-item" style={{ cursor: isBatchMode ? 'pointer' : 'default' }} onClick={() => isBatchMode && toggleSelect(goal.id!)}>
                     {isBatchMode && (
                       <div style={{ marginRight: '12px', color: selectedIds.has(goal.id!) ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}>
@@ -282,7 +282,7 @@ export default function GoalsPage() {
                       <div className="list-subtitle">{format(new Date(goal.targetDate), 'MMMM d, yyyy')}</div>
                     </div>
                     {!isBatchMode && (
-                      <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); toggleComplete(goal); }} title="Mark incomplete">↩</button>
+                      <button className="btn btn-ghost btn-icon btn-sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); toggleComplete(goal); }} title="Mark incomplete">↩</button>
                     )}
                   </div>
                 ))}
@@ -295,28 +295,28 @@ export default function GoalsPage() {
       {/* Add/Edit Goal Modal */}
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
             <h2 className="modal-title">{editingId ? 'Edit Goal' : 'Add Goal'}</h2>
 
             <div className="form-group">
               <label className="form-label">Goal Title</label>
-              <input className="form-input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. 6 months on HRT" />
+              <input className="form-input" value={form.title} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, title: e.target.value })} placeholder="e.g. 6 months on HRT" />
             </div>
 
             <div className="form-group">
               <label className="form-label">Description (optional)</label>
-              <textarea className="form-textarea" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="What does this goal mean to you?" />
+              <textarea className="form-textarea" value={form.description} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, description: e.target.value })} placeholder="What does this goal mean to you?" />
             </div>
 
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Target Date</label>
-                <input className="form-input" type="date" value={format(new Date(form.targetDate), 'yyyy-MM-dd')} onChange={e => setForm({ ...form, targetDate: new Date(e.target.value).getTime() })} />
+                <input className="form-input" type="date" value={format(new Date(form.targetDate), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, targetDate: new Date(e.target.value).getTime() })} />
               </div>
               <div className="form-group">
                 <label className="form-label">Category</label>
-                <select className="form-select" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                  {categoryOptions.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                <select className="form-select" value={form.category} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, category: e.target.value })}>
+                  {categoryOptions.map((c: string) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
                 </select>
               </div>
             </div>
@@ -324,7 +324,7 @@ export default function GoalsPage() {
             {/* Milestones */}
             <div className="form-group">
               <label className="form-label">Milestones</label>
-              {form.milestones.map((ms, i) => (
+              {form.milestones.map((ms: GoalMilestone, i: number) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <button className="btn btn-ghost btn-icon btn-sm" onClick={() => toggleMilestoneComplete(i)}>
                     {ms.completed ? '✓' : '○'}
@@ -336,7 +336,7 @@ export default function GoalsPage() {
                 </div>
               ))}
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input className="form-input" value={newMilestone} onChange={e => setNewMilestone(e.target.value)} placeholder="Add a milestone..." onKeyDown={e => e.key === 'Enter' && addMilestone()} />
+                <input className="form-input" value={newMilestone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMilestone(e.target.value)} placeholder="Add a milestone..." onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && addMilestone()} />
                 <button className="btn btn-secondary btn-sm" onClick={addMilestone}>Add</button>
               </div>
             </div>

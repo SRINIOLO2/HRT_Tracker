@@ -178,7 +178,7 @@ export default function MoodPage() {
         </div>
       ) : (
         <div className="card" style={{ padding: 0 }}>
-          {moods.map((entry) => (
+          {moods.map((entry: MoodEntry) => (
             <div key={entry.id} className="list-item" style={{ cursor: isBatchMode ? 'pointer' : 'default' }} onClick={() => isBatchMode && toggleSelect(entry.id!)}>
               {isBatchMode && (
                 <div style={{ marginRight: '12px', color: selectedIds.has(entry.id!) ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}>
@@ -186,18 +186,18 @@ export default function MoodPage() {
                 </div>
               )}
               <div className="list-icon" style={{ background: 'var(--accent-secondary-soft)', fontSize: '24px' }}>
-                {moodEmojis.find(m => m.value === entry.mood)?.emoji || '😐'}
+                {moodEmojis.find((m: any) => m.value === entry.mood)?.emoji || '😐'}
               </div>
               <div className="list-content">
                 <div className="list-title">
-                  {moodEmojis.find(m => m.value === entry.mood)?.label} · Energy: {energyLevels.find(e => e.value === entry.energy)?.label}
+                  {moodEmojis.find((m: any) => m.value === entry.mood)?.label} · Energy: {energyLevels.find((e: any) => e.value === entry.energy)?.label}
                 </div>
                 <div className="list-subtitle">
                   {format(new Date(entry.createdAt), 'MMMM d, yyyy h:mm a')}
                 </div>
                 {entry.tags && entry.tags.length > 0 && (
                   <div className="tag-group mt-8">
-                    {entry.tags.map(tag => (
+                    {entry.tags.map((tag: string) => (
                       <span key={tag} className="tag">{tag}</span>
                     ))}
                   </div>
@@ -210,10 +210,10 @@ export default function MoodPage() {
               </div>
               {!isBatchMode && (
                 <div style={{ display: 'flex', gap: '4px' }}>
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); openEditForm(entry); }} style={{ color: 'var(--text-secondary)' }}>
+                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openEditForm(entry); }} style={{ color: 'var(--text-secondary)' }}>
                     <Edit3 size={16} />
                   </button>
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); deleteMood(entry.id!); }} style={{ color: 'var(--accent-danger)' }}>
+                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); deleteMood(entry.id!); }} style={{ color: 'var(--accent-danger)' }}>
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -226,24 +226,24 @@ export default function MoodPage() {
       {/* Log Mood Modal */}
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
             <h2 className="modal-title">{editingId ? 'Edit Mood' : 'How are you feeling?'}</h2>
             
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
                 <label className="form-label">Date</label>
-                <input type="date" className="form-input" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+                <input type="date" className="form-input" value={form.date} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, date: e.target.value })} required />
               </div>
               <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
                 <label className="form-label">Time</label>
-                <input type="time" className="form-input" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} required />
+                <input type="time" className="form-input" value={form.time} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, time: e.target.value })} required />
               </div>
             </div>
 
             <div className="form-group">
               <label className="form-label">Mood</label>
               <div className="mood-scale">
-                {moodEmojis.map(m => (
+                {moodEmojis.map((m: any) => (
                   <button
                     key={m.value}
                     className={`mood-option ${form.mood === m.value ? 'selected' : ''}`}

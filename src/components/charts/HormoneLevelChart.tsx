@@ -12,12 +12,12 @@ interface Props {
 
 export function HormoneLevelChart({ data, syncId }: Props) {
   // Group data by hormone type
-  const hormoneTypes = [...new Set(data.map(d => d.hormone))];
+  const hormoneTypes = [...new Set(data.map((d: BloodTest) => d.hormone))];
   const colors = ['#7c5cfc', '#ff6b9d', '#22c997', '#f5a623', '#4da6ff', '#b44dff'];
 
   // Create chart data points sorted by date
   const sorted = [...data].sort((a, b) => a.testDate - b.testDate);
-  const chartData = sorted.map(d => ({
+  const chartData = sorted.map((d: BloodTest) => ({
     date: format(new Date(d.testDate), 'MMM d'),
     dateRaw: d.testDate,
     [d.hormone]: d.value,
@@ -25,15 +25,15 @@ export function HormoneLevelChart({ data, syncId }: Props) {
   }));
 
   // Merge entries with same date
-  const merged = chartData.reduce((acc, item) => {
-    const existing = acc.find(a => a.date === item.date);
+  const merged = chartData.reduce((acc: any[], item: any) => {
+    const existing = acc.find((a: any) => a.date === item.date);
     if (existing) {
       Object.assign(existing, item);
     } else {
       acc.push({ ...item });
     }
     return acc;
-  }, [] as Record<string, unknown>[]);
+  }, [] as any[]);
 
   if (data.length === 0) {
     return (
@@ -66,7 +66,7 @@ export function HormoneLevelChart({ data, syncId }: Props) {
             }}
           />
           <Legend />
-          {hormoneTypes.map((hormone, i) => (
+          {hormoneTypes.map((hormone: string, i: number) => (
             <Line
               key={hormone}
               type="monotone"

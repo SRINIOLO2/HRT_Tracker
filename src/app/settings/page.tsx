@@ -186,7 +186,7 @@ export default function SettingsPage() {
           <button className="btn btn-ghost" onClick={async () => {
             try {
               const logs = await db.doseLogs.toArray();
-              const csvData = logs.map(l => {
+              const csvData = logs.map((l: any) => {
                 const d = new Date(l.takenAt);
                 return {
                   medicationName: l.medicationName,
@@ -231,7 +231,7 @@ export default function SettingsPage() {
               const records = parseCSV(text);
               if (records.length === 0) throw new Error('Empty CSV');
 
-              const meds = (await db.medications.toArray()).reduce((acc, m) => {
+              const meds = (await db.medications.toArray()).reduce((acc: any, m: any) => {
                 acc[m.name.toLowerCase()] = m.id!;
                 return acc;
               }, {} as Record<string, number>);

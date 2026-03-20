@@ -211,7 +211,7 @@ export default function MedicationsPage() {
         </div>
       ) : (
         <div className="card" style={{ padding: 0 }}>
-          {medications.map((med) => (
+          {medications.map((med: Medication) => (
             <div key={med.id} className="list-item">
               <div className="list-icon" style={{ background: `${med.color}20`, color: med.color }}>
                 <Pill size={18} />
@@ -259,8 +259,8 @@ export default function MedicationsPage() {
             </div>
           </div>
           <div className="card" style={{ padding: 0 }}>
-            {doseLogs.map((dose) => {
-              const medReference = medications.find(m => m.id === dose.medicationId);
+            {doseLogs.map((dose: DoseLog) => {
+              const medReference = medications.find((m: Medication) => m.id === dose.medicationId);
               return (
                 <div key={dose.id} className="list-item" onClick={() => batchMode && toggleDoseSelect(dose.id!)} style={{ cursor: batchMode ? 'pointer' : 'default' }}>
                   {batchMode && (

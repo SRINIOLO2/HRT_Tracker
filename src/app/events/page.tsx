@@ -16,7 +16,7 @@ const categoryOptions = [
 ];
 
 function getCategoryInfo(value: string) {
-  return categoryOptions.find(c => c.value === value) || categoryOptions[categoryOptions.length - 1];
+  return categoryOptions.find((c: any) => c.value === value) || categoryOptions[categoryOptions.length - 1];
 }
 
 function formatTimeSince(dateMs: number): string {
@@ -87,7 +87,7 @@ export default function EventsPage() {
 
   // Group events by year
   const groupedByYear: Record<string, LifeEvent[]> = {};
-  events.forEach(event => {
+  events.forEach((event: LifeEvent) => {
     const year = new Date(event.date).getFullYear().toString();
     if (!groupedByYear[year]) groupedByYear[year] = [];
     groupedByYear[year].push(event);
@@ -96,8 +96,8 @@ export default function EventsPage() {
 
   // Upcoming anniversaries
   const upcomingAnniversaries = events
-    .filter(e => e.notifyOnAnniversary && differenceInDays(new Date(e.date), new Date()) < 0)
-    .map(e => {
+    .filter((e: LifeEvent) => e.notifyOnAnniversary && differenceInDays(new Date(e.date), new Date()) < 0)
+    .map((e: LifeEvent) => {
       const years = differenceInYears(Date.now(), e.date);
       const nextAnniversary = new Date(e.date);
       nextAnniversary.setFullYear(new Date().getFullYear());
@@ -107,8 +107,8 @@ export default function EventsPage() {
       const daysUntil = differenceInDays(nextAnniversary, new Date());
       return { ...e, yearsCompleted: years, daysUntilNext: daysUntil };
     })
-    .filter(e => e.daysUntilNext <= 60)
-    .sort((a, b) => a.daysUntilNext - b.daysUntilNext);
+    .filter((e: any) => e.daysUntilNext <= 60)
+    .sort((a: any, b: any) => a.daysUntilNext - b.daysUntilNext);
 
   return (
     <div>
@@ -128,7 +128,7 @@ export default function EventsPage() {
           <div className="card-header">
             <h3 className="card-title">🎉 Upcoming Anniversaries</h3>
           </div>
-          {upcomingAnniversaries.map(a => (
+          {upcomingAnniversaries.map((a: any) => (
             <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', fontSize: 'var(--font-size-sm)' }}>
               <span style={{ fontSize: '20px' }}>🎂</span>
               <div>
@@ -158,13 +158,13 @@ export default function EventsPage() {
         </div>
       ) : (
         <div className="timeline">
-          {sortedYears.map(year => (
+          {sortedYears.map((year: string) => (
             <div key={year} className="section">
               <h2 className="section-title mb-16" style={{ position: 'sticky', top: '0', background: 'var(--bg-primary)', zIndex: 1, padding: '4px 0' }}>
                 {year}
               </h2>
               <div style={{ borderLeft: '2px solid var(--border-primary)', marginLeft: '16px', paddingLeft: '24px' }}>
-                {groupedByYear[year].map(event => {
+                {groupedByYear[year].map((event: LifeEvent) => {
                   const cat = getCategoryInfo(event.category);
                   return (
                     <div key={event.id} className="card mb-16" style={{ position: 'relative' }}>
@@ -233,30 +233,30 @@ export default function EventsPage() {
       {/* Add/Edit Event Modal */}
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
             <h2 className="modal-title">{editingId ? 'Edit Event' : 'Add Event'}</h2>
 
             <div className="form-group">
               <label className="form-label">Event Title</label>
-              <input className="form-input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder='e.g. "Started HRT", "Changed doctor", "Top surgery"' />
+              <input className="form-input" value={form.title} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, title: e.target.value })} placeholder='e.g. "Started HRT", "Changed doctor", "Top surgery"' />
             </div>
 
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Date</label>
-                <input className="form-input" type="date" value={format(new Date(form.date), 'yyyy-MM-dd')} onChange={e => setForm({ ...form, date: new Date(e.target.value).getTime() })} />
+                <input className="form-input" type="date" value={format(new Date(form.date), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, date: new Date(e.target.value).getTime() })} />
               </div>
               <div className="form-group">
                 <label className="form-label">Category</label>
-                <select className="form-select" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                  {categoryOptions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                <select className="form-select" value={form.category} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, category: e.target.value })}>
+                  {categoryOptions.map((c: any) => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>
             </div>
 
             <div className="form-group">
               <label className="form-label">Description (optional)</label>
-              <textarea className="form-textarea" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="What happened? Why is this significant?" />
+              <textarea className="form-textarea" value={form.description} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, description: e.target.value })} placeholder="What happened? Why is this significant?" />
             </div>
 
             <div className="form-group">
@@ -264,7 +264,7 @@ export default function EventsPage() {
                 <input
                   type="checkbox"
                   checked={form.notifyOnAnniversary}
-                  onChange={e => setForm({ ...form, notifyOnAnniversary: e.target.checked, isRecurring: e.target.checked })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, notifyOnAnniversary: e.target.checked, isRecurring: e.target.checked })}
                   style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)' }}
                 />
                 <Calendar size={16} />

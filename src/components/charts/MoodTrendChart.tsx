@@ -12,7 +12,7 @@ interface Props {
 
 export function MoodTrendChart({ data, syncId }: Props) {
   const sorted = [...data].sort((a, b) => a.createdAt - b.createdAt);
-  const chartData = sorted.map(d => ({
+  const chartData = sorted.map((d: MoodEntry) => ({
     date: format(new Date(d.createdAt), 'MMM d'),
     mood: d.mood,
     energy: d.energy,

@@ -1,13 +1,13 @@
 export function generateCSV(data: any[], headers: string[]): string {
   if (data.length === 0) return headers.join(',') + '\n';
   
-  const rows = data.map(row => {
-    return headers.map(header => {
+  const rows = data.map((row: any) => {
+    return headers.map((header: string) => {
       let val = row[header];
       if (val === undefined || val === null) val = '';
       if (typeof val === 'string') {
         // Escape quotes
-        val = val.replace(/"/g, '""');
+        val = (val as string).replace(/"/g, '""');
         // Wrap in quotes if it contains commas, quotes, or newlines
         if (val.includes(',') || val.includes('"') || val.includes('\n')) {
           val = `"${val}"`;
@@ -24,12 +24,12 @@ export function parseCSV(csvText: string): Record<string, string>[] {
   const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
   if (lines.length < 1) return [];
   
-  const headers = lines[0].split(',').map(h => h.trim());
+  const headers = lines[0].split(',').map((h: string) => h.trim());
   const records = [];
   
   for (let i = 1; i < lines.length; i++) {
     const rawline = lines[i];
-    const vals = [];
+    const vals: string[] = [];
     let cur = '';
     let inQuotes = false;
     
@@ -52,7 +52,7 @@ export function parseCSV(csvText: string): Record<string, string>[] {
     vals.push(cur);
     
     const obj: Record<string, string> = {};
-    headers.forEach((h, idx) => {
+    headers.forEach((h: string, idx: number) => {
       obj[h] = vals[idx] || '';
     });
     records.push(obj);

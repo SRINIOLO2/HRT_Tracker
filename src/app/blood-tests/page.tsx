@@ -165,8 +165,8 @@ export default function BloodTestsPage() {
               </div>
               {!isBatchMode && (
                 <div className="list-actions">
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); openEditForm(test); }}><Edit2 size={14} /></button>
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); deleteTest(test.id!); }} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
+                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openEditForm(test); }}><Edit2 size={14} /></button>
+                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); deleteTest(test.id!); }} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
                 </div>
               )}
             </div>
@@ -177,54 +177,54 @@ export default function BloodTestsPage() {
       {/* Add/Edit Modal */}
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
             <h2 className="modal-title">{editingId ? 'Edit Blood Test' : 'Add Blood Test Result'}</h2>
 
             <div className="form-group">
               <label className="form-label">Test Date</label>
-              <input className="form-input" type="date" value={format(new Date(form.testDate), 'yyyy-MM-dd')} onChange={e => setForm({ ...form, testDate: new Date(e.target.value).getTime() })} />
+              <input className="form-input" type="date" value={format(new Date(form.testDate), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, testDate: new Date(e.target.value).getTime() })} />
             </div>
 
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Hormone</label>
-                <input className="form-input" list="hormone-suggestions" value={form.hormone} onChange={e => setForm({ ...form, hormone: e.target.value })} placeholder="Type or select a hormone" />
+                <input className="form-input" list="hormone-suggestions" value={form.hormone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, hormone: e.target.value })} placeholder="Type or select a hormone" />
                 <datalist id="hormone-suggestions">
-                  {hormoneSuggestions.map(h => <option key={h} value={h} />)}
+                  {hormoneSuggestions.map((h: string) => <option key={h} value={h} />)}
                 </datalist>
               </div>
               <div className="form-group">
                 <label className="form-label">Unit</label>
-                <select className="form-select" value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })}>
-                  {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
+                <select className="form-select" value={form.unit} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, unit: e.target.value })}>
+                  {unitOptions.map((u: string) => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
             </div>
 
             <div className="form-group">
               <label className="form-label">Value</label>
-              <input className="form-input" type="number" step="0.01" value={form.value || ''} onChange={e => setForm({ ...form, value: parseFloat(e.target.value) || 0 })} placeholder="Enter test value" />
+              <input className="form-input" type="number" step="0.01" value={form.value || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, value: parseFloat(e.target.value) || 0 })} placeholder="Enter test value" />
             </div>
 
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Reference Min (optional)</label>
-                <input className="form-input" type="number" step="0.01" value={form.referenceMin || ''} onChange={e => setForm({ ...form, referenceMin: parseFloat(e.target.value) || undefined })} />
+                <input className="form-input" type="number" step="0.01" value={form.referenceMin || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMin: parseFloat(e.target.value) || undefined })} />
               </div>
               <div className="form-group">
                 <label className="form-label">Reference Max (optional)</label>
-                <input className="form-input" type="number" step="0.01" value={form.referenceMax || ''} onChange={e => setForm({ ...form, referenceMax: parseFloat(e.target.value) || undefined })} />
+                <input className="form-input" type="number" step="0.01" value={form.referenceMax || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMax: parseFloat(e.target.value) || undefined })} />
               </div>
             </div>
 
             <div className="form-group">
               <label className="form-label">Lab (optional)</label>
-              <input className="form-input" value={form.lab} onChange={e => setForm({ ...form, lab: e.target.value })} placeholder="e.g. Quest Diagnostics" />
+              <input className="form-input" value={form.lab} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, lab: e.target.value })} placeholder="e.g. Quest Diagnostics" />
             </div>
 
             <div className="form-group">
               <label className="form-label">Notes</label>
-              <textarea className="form-textarea" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes..." />
+              <textarea className="form-textarea" value={form.notes} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes..." />
             </div>
 
             <div className="form-actions">

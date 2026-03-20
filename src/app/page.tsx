@@ -16,6 +16,14 @@ const moodEmojis = ['', '😞', '😕', '😐', '🙂', '😊'];
 
 const DEFAULT_LAYOUT = ['summary', 'actions', 'doses', 'hormone', 'mood'];
 
+const sectionNames: Record<string, string> = {
+  summary: 'Summary Cards',
+  actions: 'Quick Actions',
+  doses: 'Recent Doses',
+  hormone: 'Hormone Level Trends',
+  mood: 'Mood Trends'
+};
+
 export default function DashboardPage() {
   const medications = useLiveQuery(() => db.medications.where('active').equals(1).toArray()) || [];
   const recentDoses = useLiveQuery(() =>
@@ -29,13 +37,24 @@ export default function DashboardPage() {
   ) || [];
   const goals = useLiveQuery(async () => {
     const all = await db.goals.toArray();
-    return all.filter(g => !g.completed);
+    return all.filter((g: any) => !g.completed);
   }) || [];
 
   const [layout, setLayout] = useState<string[]>(DEFAULT_LAYOUT);
   const [hiddenSections, setHiddenSections] = useState<Record<string, boolean>>({});
   const [editMode, setEditMode] = useState(false);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
+
+  function saveLayout(newLayout: string[]) {
+    setLayout(newLayout);
+    localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
+  }
+
+  function toggleVisibility(id: string) {
+    const newHidden = { ...hiddenSections, [id]: !hiddenSections[id] };
+    setHiddenSections(newHidden);
+    localStorage.setItem('dashboardHidden', JSON.stringify(newHidden));
+  }
 
   function moveItem(index: number, direction: number) {
     const newLayout = [...layout];
@@ -60,8 +79,8 @@ export default function DashboardPage() {
 
   const latestMood = recentMoods.length > 0 ? recentMoods[0] : null;
   const latestBloodTest = recentBloodTests.length > 0 ? recentBloodTests[0] : null;
-  const forgottenCount = recentDoses.filter(d => d.forgotten).length;
-  const takenCount = recentDoses.filter(d => !d.forgotten).length;
+  const forgottenCount = recentDoses.filter((d: any) => d.forgotten).length;
+  const takenCount = recentDoses.filter((d: any) => !d.forgotten).length;
 
   const renderSectionContent = (id: string) => {
     switch (id) {
@@ -198,7 +217,7 @@ export default function DashboardPage() {
                <div className="card" style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '16px' }}>No recent doses</div>
             ) : (
               <div className="card" style={{ padding: 0 }}>
-                {recentDoses.slice(0, 5).map((dose) => (
+                {recentDoses.slice(0, 5).map((dose: any) => (
                   <div key={dose.id} className="list-item">
                      <div className="list-icon" style={{
                       background: dose.forgotten ? 'var(--accent-warning-soft)' : 'var(--accent-success-soft)',
@@ -317,7 +336,7 @@ export default function DashboardPage() {
       )}
 
       <div>
-        {layout.map((id, index) => {
+        {layout.map((id: string, index: number) => {
           const isHidden = hiddenSections[id];
           if (isHidden && !editMode) return null;
           
