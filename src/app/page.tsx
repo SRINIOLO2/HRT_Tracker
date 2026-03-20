@@ -42,6 +42,7 @@ export default function DashboardPage() {
 
   const [layout, setLayout] = useState<string[]>(DEFAULT_LAYOUT);
   const [hiddenSections, setHiddenSections] = useState<Record<string, boolean>>({});
+  const [featureToggles, setFeatureToggles] = useState({ mood: true, goals: true, events: true, bloodTests: true });
   const [editMode, setEditMode] = useState(false);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
 
@@ -75,7 +76,50 @@ export default function DashboardPage() {
     const savedHidden = localStorage.getItem('dashboardHidden');
     if (savedHidden) setHiddenSections(JSON.parse(savedHidden));
     setSyncGraphs(localStorage.getItem('hrt_sync_graphs') === 'true');
+    setFeatureToggles({
+      mood: localStorage.getItem('hrt_enable_mood') !== 'false',
+      goals: localStorage.getItem('hrt_enable_goals') !== 'false',
+      events: localStorage.getItem('hrt_enable_events') !== 'false',
+      bloodTests: localStorage.getItem('hrt_enable_blood_tests') !== 'false'
+    });
   }, []);
+
+  async function logQuickMood(value: number) {
+    const d = new Date();
+    await db.moods.add({
+      date: format(d, 'yyyy-MM-dd'),
+      mood: value,
+      energy: 0,
+      notes: '',
+      tags: [],
+      createdAt: d.getTime(),
+    });
+  }
+
+  async function logMedication(med: Medication) {
+    await db.doseLogs.add({
+      medicationId: med.id!,
+      medicationName: med.name,
+      dose: med.defaultDose,
+      unit: med.defaultUnit,
+      route: med.route,
+      takenAt: Date.now(),
+      forgotten: false,
+      notes: 'Quick log from dashboard',
+    });
+  }
+
+  async function takeAllMeds() {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayDoses = recentDoses.filter((d: DoseLog) => d.takenAt >= todayStart.getTime() && !d.forgotten);
+    
+    for (const med of medications) {
+      if (!todayDoses.some((d: DoseLog) => d.medicationId === med.id)) {
+        await logMedication(med);
+      }
+    }
+  }
 
   const latestMood = recentMoods.length > 0 ? recentMoods[0] : null;
   const latestBloodTest = recentBloodTests.length > 0 ? recentBloodTests[0] : null;
@@ -105,105 +149,144 @@ export default function DashboardPage() {
               )}
             </div>
             
-            <div className="card card-gradient">
-              <div className="card-header">
-                <div>
-                  <div className="card-value">
-                    {latestMood ? moodEmojis[latestMood.mood] : '—'}
-                  </div>
-                  <div className="card-label">Recent Mood</div>
-                </div>
-                <div className="card-icon" style={{ background: 'var(--accent-secondary-soft)', color: 'var(--accent-secondary)' }}>
-                  <SmilePlus size={20} />
-                </div>
-              </div>
-              {latestMood && (
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)' }}>
-                  {format(new Date(latestMood.createdAt), 'MMM d')} · Energy {latestMood.energy}/5
-                </div>
-              )}
-            </div>
-
-            <div className="card card-gradient">
-              <div className="card-header">
-                <div>
-                  <div className="card-value" style={{ fontSize: 'var(--font-size-xl)' }}>
-                    {latestBloodTest ? `${latestBloodTest.value} ${latestBloodTest.unit}` : '—'}
-                  </div>
-                  <div className="card-label">
-                    {latestBloodTest ? latestBloodTest.hormone : 'Latest Blood Test'}
-                  </div>
-                </div>
-                <div className="card-icon" style={{ background: 'var(--accent-success-soft)', color: 'var(--accent-success)' }}>
-                  <TestTubes size={20} />
-                </div>
-              </div>
-              {latestBloodTest && (
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)' }}>
-                  {format(new Date(latestBloodTest.testDate), 'MMM d, yyyy')}
-                </div>
-              )}
-            </div>
-
-            <Link href="/goals" style={{ textDecoration: 'none' }}>
-              <div className="card card-gradient" style={{ cursor: 'pointer', height: '100%' }}>
+            {featureToggles.mood && (
+              <div className="card card-gradient">
                 <div className="card-header">
                   <div>
-                    <div className="card-value">{goals.length}</div>
-                    <div className="card-label">Active Goals</div>
+                    <div className="card-value">
+                      {latestMood ? moodEmojis[latestMood.mood] : '—'}
+                    </div>
+                    <div className="card-label">Recent Mood</div>
                   </div>
-                  <div className="card-icon" style={{ background: 'var(--accent-info-soft)', color: 'var(--accent-info)' }}>
-                    <Target size={20} />
+                  <div className="card-icon" style={{ background: 'var(--accent-secondary-soft)', color: 'var(--accent-secondary)' }}>
+                    <SmilePlus size={20} />
                   </div>
                 </div>
+                {latestMood && (
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)' }}>
+                    {format(new Date(latestMood.createdAt), 'MMM d')}
+                    {latestMood.energy ? ` · Energy ${latestMood.energy}/5` : ''}
+                  </div>
+                )}
               </div>
-            </Link>
+            )}
+
+            {featureToggles.bloodTests && (
+              <div className="card card-gradient">
+                <div className="card-header">
+                  <div>
+                    <div className="card-value" style={{ fontSize: 'var(--font-size-xl)' }}>
+                      {latestBloodTest ? `${latestBloodTest.value} ${latestBloodTest.unit}` : '—'}
+                    </div>
+                    <div className="card-label">
+                      {latestBloodTest ? latestBloodTest.hormone : 'Latest Blood Test'}
+                    </div>
+                  </div>
+                  <div className="card-icon" style={{ background: 'var(--accent-success-soft)', color: 'var(--accent-success)' }}>
+                    <TestTubes size={20} />
+                  </div>
+                </div>
+                {latestBloodTest && (
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)' }}>
+                    {format(new Date(latestBloodTest.testDate), 'MMM d, yyyy')}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {featureToggles.goals && (
+              <Link href="/goals" style={{ textDecoration: 'none' }}>
+                <div className="card card-gradient" style={{ cursor: 'pointer', height: '100%' }}>
+                  <div className="card-header">
+                    <div>
+                      <div className="card-value">{goals.length}</div>
+                      <div className="card-label">Active Goals</div>
+                    </div>
+                    <div className="card-icon" style={{ background: 'var(--accent-info-soft)', color: 'var(--accent-info)' }}>
+                      <Target size={20} />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            )}
           </div>
         );
 
       case 'actions':
+      case 'actions': {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayDoses = recentDoses.filter((d: DoseLog) => d.takenAt >= todayStart.getTime() && !d.forgotten);
+
         return (
           <div className="section mt-24">
             <div className="section-header">
               <h2 className="section-title">Quick Actions</h2>
             </div>
-            <div className="summary-grid">
-              <Link href="/medications" style={{ textDecoration: 'none' }}>
-                <button className="quick-action" style={{ width: '100%' }}>
-                  <div className="quick-action-icon" style={{ background: 'var(--accent-primary)' }}>
-                    <Pill size={20} />
+            
+            <div className="card mb-16">
+              <h3 className="card-title mb-16" style={{ fontSize: '1rem' }}>Medications</h3>
+              {medications.length === 0 ? (
+                <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-size-sm)' }}>No active medications.</p>
+              ) : (
+                <>
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    {medications.map((med: Medication) => {
+                      const takenToday = todayDoses.some((d: DoseLog) => d.medicationId === med.id);
+                      return (
+                        <div key={med.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: 'var(--bg-body)', borderRadius: '8px' }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>{med.name} ({med.defaultDose}{med.defaultUnit})</span>
+                          <button 
+                            className={`btn btn-sm ${takenToday ? 'btn-ghost' : 'btn-primary'}`} 
+                            disabled={takenToday} 
+                            onClick={() => logMedication(med)}
+                          >
+                            {takenToday ? <><Check size={14} /> Taken</> : 'Take'}
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
-                  <div className="quick-action-text" style={{ textAlign: 'left' }}>
-                    <div className="quick-action-title">Log a Dose</div>
-                    <div className="quick-action-subtitle">Record medication taken</div>
-                  </div>
-                </button>
-              </Link>
-              <Link href="/mood" style={{ textDecoration: 'none' }}>
-                <button className="quick-action" style={{ width: '100%' }}>
-                  <div className="quick-action-icon" style={{ background: 'var(--accent-secondary)' }}>
-                    <SmilePlus size={20} />
-                  </div>
-                  <div className="quick-action-text" style={{ textAlign: 'left' }}>
-                    <div className="quick-action-title">Log Mood</div>
-                    <div className="quick-action-subtitle">How are you feeling?</div>
-                  </div>
-                </button>
-              </Link>
-              <Link href="/blood-tests" style={{ textDecoration: 'none' }}>
-                <button className="quick-action" style={{ width: '100%' }}>
-                  <div className="quick-action-icon" style={{ background: 'var(--accent-success)' }}>
-                    <TestTubes size={20} />
-                  </div>
-                  <div className="quick-action-text" style={{ textAlign: 'left' }}>
-                    <div className="quick-action-title">Log Blood Test</div>
-                    <div className="quick-action-subtitle">Add test results</div>
-                  </div>
-                </button>
-              </Link>
+                  {medications.length > 1 && (
+                    <button className="btn btn-secondary btn-sm mt-12" style={{ width: '100%' }} onClick={takeAllMeds}>
+                      Take All Doses
+                    </button>
+                  )}
+                </>
+              )}
             </div>
+
+            {featureToggles.mood && (
+              <div className="card mb-16">
+                <h3 className="card-title mb-16" style={{ fontSize: '1rem' }}>How are you feeling?</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 8px' }}>
+                  {moodEmojis.map((emoji, idx) => {
+                    if (!emoji) return null;
+                    return (
+                      <button 
+                        key={idx} 
+                        className="mood-option" 
+                        onClick={() => logQuickMood(idx)} 
+                        style={{ fontSize: '32px', padding: '8px', background: 'none', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' }}
+                      >
+                        {emoji}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {featureToggles.bloodTests && (
+              <Link href="/blood-tests" style={{ textDecoration: 'none' }}>
+                <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+                  <TestTubes size={16} /> Log Blood Test
+                </button>
+              </Link>
+            )}
           </div>
         );
+      }
 
       case 'doses':
         if (recentDoses.length === 0 && !editMode) return null;
@@ -243,7 +326,8 @@ export default function DashboardPage() {
         );
 
       case 'hormone': {
-        const bloodData = syncGraphs ? recentBloodTests.filter(b => b.testDate >= subDays(Date.now(), 30).getTime()) : recentBloodTests;
+        if (!featureToggles.bloodTests) return null;
+        const bloodData = syncGraphs ? recentBloodTests.filter((b: BloodTest) => b.testDate >= subDays(Date.now(), 30).getTime()) : recentBloodTests;
         if (bloodData.length === 0 && !editMode) return null;
         return (
           <div className="section mt-24">
@@ -262,7 +346,8 @@ export default function DashboardPage() {
       }
 
       case 'mood': {
-        const moodData = syncGraphs ? recentMoods.filter(m => m.createdAt >= subDays(Date.now(), 30).getTime()) : recentMoods;
+        if (!featureToggles.mood) return null;
+        const moodData = syncGraphs ? recentMoods.filter((m: MoodEntry) => m.createdAt >= subDays(Date.now(), 30).getTime()) : recentMoods;
         if (moodData.length === 0 && !editMode) return null;
         return (
           <div className="section mt-24">
@@ -315,6 +400,21 @@ export default function DashboardPage() {
             Rearrange sections using the arrows, or toggle visibility.
           </p>
         </div>
+      )}
+
+      {/* Active Goals Banner */}
+      {featureToggles.goals && goals.length > 0 && !editMode && (
+         <div className="card mt-16 mb-24" style={{ background: 'var(--accent-info-soft)', border: '1px solid var(--accent-info)' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+               <Target size={24} style={{ color: 'var(--accent-info)' }} />
+               <div>
+                 <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Focus: {goals[0].title}</div>
+                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                    Target: {format(new Date(goals[0].targetDate), 'MMM d, yyyy')}
+                 </div>
+               </div>
+            </div>
+         </div>
       )}
 
       {/* Empty state when no data and empty layout */}

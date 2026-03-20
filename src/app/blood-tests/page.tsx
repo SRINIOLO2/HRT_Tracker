@@ -29,6 +29,7 @@ export default function BloodTestsPage() {
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [batchEnabled, setBatchEnabled] = useState(false);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
 
   useEffect(() => {
     setBatchEnabled(localStorage.getItem('hrt_batch_delete') === 'true');
@@ -36,12 +37,14 @@ export default function BloodTestsPage() {
   const [form, setForm] = useState<Omit<BloodTest, 'id'>>(emptyTest);
 
   function openAddForm() {
+    setShowOptionalFields(false);
     setForm({ ...emptyTest, testDate: Date.now(), createdAt: Date.now() });
     setEditingId(null);
     setShowForm(true);
   }
 
   function openEditForm(test: BloodTest) {
+    setShowOptionalFields(false);
     setForm({ ...test });
     setEditingId(test.id!);
     setShowForm(true);
@@ -202,33 +205,44 @@ export default function BloodTestsPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Value</label>
+              <label className="form-label">Value <span style={{color: 'var(--accent-danger)'}}>*</span></label>
               <input className="form-input" type="number" step="0.01" value={form.value || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, value: parseFloat(e.target.value) || 0 })} placeholder="Enter test value" />
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Reference Min (optional)</label>
-                <input className="form-input" type="number" step="0.01" value={form.referenceMin || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMin: parseFloat(e.target.value) || undefined })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Reference Max (optional)</label>
-                <input className="form-input" type="number" step="0.01" value={form.referenceMax || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMax: parseFloat(e.target.value) || undefined })} />
-              </div>
-            </div>
+            <button 
+              type="button" 
+              onClick={() => setShowOptionalFields(!showOptionalFields)} 
+              style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', padding: '0', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.9rem', marginBottom: '16px', fontWeight: 'bold' }}>
+              {showOptionalFields ? '▼ Hide Optional Fields' : '▶ Show Optional Fields'}
+            </button>
 
-            <div className="form-group">
-              <label className="form-label">Lab (optional)</label>
-              <input className="form-input" value={form.lab} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, lab: e.target.value })} placeholder="e.g. Quest Diagnostics" />
-            </div>
+            {showOptionalFields && (
+              <>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Reference Min (optional)</label>
+                    <input className="form-input" type="number" step="0.01" value={form.referenceMin || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMin: parseFloat(e.target.value) || undefined })} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Reference Max (optional)</label>
+                    <input className="form-input" type="number" step="0.01" value={form.referenceMax || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMax: parseFloat(e.target.value) || undefined })} />
+                  </div>
+                </div>
 
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Notes</span>
-                <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.notes?.length || 0}/500</span>
-              </label>
-              <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes..." />
-            </div>
+                <div className="form-group">
+                  <label className="form-label">Lab (optional)</label>
+                  <input className="form-input" value={form.lab} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, lab: e.target.value })} placeholder="e.g. Quest Diagnostics" />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Notes</span>
+                    <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.notes?.length || 0}/500</span>
+                  </label>
+                  <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes..." />
+                </div>
+              </>
+            )}
 
             <div className="form-actions">
               <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>

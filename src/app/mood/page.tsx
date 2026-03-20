@@ -37,6 +37,8 @@ export default function MoodPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [batchEnabled, setBatchEnabled] = useState(false);
 
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
+
   useEffect(() => {
     setBatchEnabled(localStorage.getItem('hrt_batch_delete') === 'true');
   }, []);
@@ -45,24 +47,26 @@ export default function MoodPage() {
     date: format(new Date(), 'yyyy-MM-dd'),
     time: format(new Date(), 'HH:mm'),
     mood: 3,
-    energy: 3,
+    energy: 0,
     notes: '',
     tags: [] as string[],
   });
 
   function openNewForm() {
-    setForm({ date: format(new Date(), 'yyyy-MM-dd'), time: format(new Date(), 'HH:mm'), mood: 3, energy: 3, notes: '', tags: [] });
+    setShowOptionalFields(false);
+    setForm({ date: format(new Date(), 'yyyy-MM-dd'), time: format(new Date(), 'HH:mm'), mood: 3, energy: 0, notes: '', tags: [] });
     setEditingId(null);
     setShowForm(true);
   }
 
   function openEditForm(entry: MoodEntry) {
+    setShowOptionalFields(false);
     const d = new Date(entry.createdAt);
     setForm({
       date: format(d, 'yyyy-MM-dd'),
       time: format(d, 'HH:mm'),
       mood: entry.mood,
-      energy: entry.energy,
+      energy: entry.energy || 0,
       notes: entry.notes || '',
       tags: entry.tags || [],
     });
@@ -190,7 +194,8 @@ export default function MoodPage() {
               </div>
               <div className="list-content">
                 <div className="list-title">
-                  {moodEmojis.find((m: any) => m.value === entry.mood)?.label} · Energy: {energyLevels.find((e: any) => e.value === entry.energy)?.label}
+                  {moodEmojis.find((m: any) => m.value === entry.mood)?.label}
+                  {entry.energy ? ` · Energy: ${energyLevels.find((e: any) => e.value === entry.energy)?.label}` : ''}
                 </div>
                 <div className="list-subtitle">
                   {format(new Date(entry.createdAt), 'MMMM d, yyyy h:mm a')}
@@ -256,45 +261,56 @@ export default function MoodPage() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Energy Level</label>
-              <div className="mood-scale">
-                {energyLevels.map(e => (
-                  <button
-                    key={e.value}
-                    className={`mood-option ${form.energy === e.value ? 'selected' : ''}`}
-                    onClick={() => setForm({ ...form, energy: e.value })}
-                    title={e.label}
-                    style={{ fontSize: '14px', fontWeight: 600 }}
-                  >
-                    {e.value}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <button 
+              type="button" 
+              onClick={() => setShowOptionalFields(!showOptionalFields)} 
+              style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', padding: '0', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.9rem', marginBottom: '16px', fontWeight: 'bold' }}>
+              {showOptionalFields ? '▼ Hide Optional Fields' : '▶ Show Optional Fields'}
+            </button>
 
-            <div className="form-group">
-              <label className="form-label">Tags</label>
-              <div className="tag-group">
-                {moodTags.map(tag => (
-                  <button
-                    key={tag}
-                    className={`tag ${form.tags.includes(tag) ? 'active' : ''}`}
-                    onClick={() => toggleTag(tag)}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {showOptionalFields && (
+              <>
+                <div className="form-group">
+                  <label className="form-label">Energy Level</label>
+                  <div className="mood-scale">
+                    {energyLevels.map(e => (
+                      <button
+                        key={e.value}
+                        className={`mood-option ${form.energy === e.value ? 'selected' : ''}`}
+                        onClick={() => setForm({ ...form, energy: e.value })}
+                        title={e.label}
+                        style={{ fontSize: '14px', fontWeight: 600 }}
+                      >
+                        {e.value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Notes (optional)</span>
-                <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.notes?.length || 0}/500</span>
-              </label>
-              <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="How are you feeling today?" />
-            </div>
+                <div className="form-group">
+                  <label className="form-label">Tags</label>
+                  <div className="tag-group">
+                    {moodTags.map(tag => (
+                      <button
+                        key={tag}
+                        className={`tag ${form.tags.includes(tag) ? 'active' : ''}`}
+                        onClick={() => toggleTag(tag)}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Notes (optional)</span>
+                    <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.notes?.length || 0}/500</span>
+                  </label>
+                  <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="How are you feeling today?" />
+                </div>
+              </>
+            )}
 
             <div className="form-actions">
               <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>

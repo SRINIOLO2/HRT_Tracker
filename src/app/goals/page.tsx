@@ -28,18 +28,21 @@ export default function GoalsPage() {
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [batchEnabled, setBatchEnabled] = useState(false);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
 
   useEffect(() => {
     setBatchEnabled(localStorage.getItem('hrt_batch_delete') === 'true');
   }, []);
 
   function openAddForm() {
+    setShowOptionalFields(false);
     setForm({ ...emptyGoal, createdAt: Date.now(), targetDate: Date.now() + 90 * 86400000 });
     setEditingId(null);
     setShowForm(true);
   }
 
   function openEditForm(goal: Goal) {
+    setShowOptionalFields(false);
     setForm({ ...goal });
     setEditingId(goal.id!);
     setShowForm(true);
@@ -304,45 +307,55 @@ export default function GoalsPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Description (optional)</span>
-                <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.description?.length || 0}/500</span>
-              </label>
-              <textarea className="form-textarea" maxLength={500} value={form.description} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, description: e.target.value })} placeholder="What does this goal mean to you?" />
+              <label className="form-label">Target Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+              <input className="form-input" type="date" value={format(new Date(form.targetDate), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, targetDate: new Date(e.target.value).getTime() })} />
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Target Date</label>
-                <input className="form-input" type="date" value={format(new Date(form.targetDate), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, targetDate: new Date(e.target.value).getTime() })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Category</label>
-                <select className="form-select" value={form.category} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, category: e.target.value })}>
-                  {categoryOptions.map((c: string) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
-                </select>
-              </div>
-            </div>
+            <button 
+              type="button" 
+              onClick={() => setShowOptionalFields(!showOptionalFields)} 
+              style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', padding: '0', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.9rem', marginBottom: '16px', fontWeight: 'bold' }}>
+              {showOptionalFields ? '▼ Hide Optional Fields' : '▶ Show Optional Fields'}
+            </button>
 
-            {/* Milestones */}
-            <div className="form-group">
-              <label className="form-label">Milestones</label>
-              {form.milestones.map((ms: GoalMilestone, i: number) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={() => toggleMilestoneComplete(i)}>
-                    {ms.completed ? '✓' : '○'}
-                  </button>
-                  <span style={{ flex: 1, fontSize: 'var(--font-size-sm)' }}>{ms.title}</span>
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={() => removeMilestone(i)} style={{ color: 'var(--accent-danger)' }}>
-                    <Trash2 size={12} />
-                  </button>
+            {showOptionalFields && (
+              <>
+                <div className="form-group">
+                  <label className="form-label">Category</label>
+                  <select className="form-select" value={form.category} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, category: e.target.value })}>
+                    {categoryOptions.map((c: string) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                  </select>
                 </div>
-              ))}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input className="form-input" value={newMilestone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMilestone(e.target.value)} placeholder="Add a milestone..." onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && addMilestone()} />
-                <button className="btn btn-secondary btn-sm" onClick={addMilestone}>Add</button>
-              </div>
-            </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Description (optional)</span>
+                    <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.description?.length || 0}/500</span>
+                  </label>
+                  <textarea className="form-textarea" maxLength={500} value={form.description} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, description: e.target.value })} placeholder="What does this goal mean to you?" />
+                </div>
+
+                {/* Milestones */}
+                <div className="form-group">
+                  <label className="form-label">Milestones</label>
+                  {form.milestones.map((ms: GoalMilestone, i: number) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <button className="btn btn-ghost btn-icon btn-sm" onClick={() => toggleMilestoneComplete(i)}>
+                        {ms.completed ? '✓' : '○'}
+                      </button>
+                      <span style={{ flex: 1, fontSize: 'var(--font-size-sm)' }}>{ms.title}</span>
+                      <button className="btn btn-ghost btn-icon btn-sm" onClick={() => removeMilestone(i)} style={{ color: 'var(--accent-danger)' }}>
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input className="form-input" value={newMilestone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMilestone(e.target.value)} placeholder="Add a milestone..." onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && addMilestone()} />
+                    <button className="btn btn-secondary btn-sm" onClick={addMilestone}>Add</button>
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className="form-actions">
               <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
