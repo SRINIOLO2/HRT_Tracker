@@ -822,7 +822,7 @@ body {
 
 .quick-action-subtitle {
   font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 /* ─── Chart Container ───────────────────────────────────── */
