@@ -7,9 +7,10 @@ import type { MoodEntry } from '@/lib/db';
 
 interface Props {
   data: MoodEntry[];
+  syncId?: string;
 }
 
-export function MoodTrendChart({ data }: Props) {
+export function MoodTrendChart({ data, syncId }: Props) {
   const sorted = [...data].sort((a, b) => a.createdAt - b.createdAt);
   const chartData = sorted.map(d => ({
     date: format(new Date(d.createdAt), 'MMM d'),
@@ -28,7 +29,7 @@ export function MoodTrendChart({ data }: Props) {
   return (
     <div className="chart-container">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+        <AreaChart data={chartData} syncId={syncId} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
           <defs>
             <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#7c5cfc" stopOpacity={0.3} />

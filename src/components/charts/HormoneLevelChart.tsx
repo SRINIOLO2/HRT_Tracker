@@ -7,9 +7,10 @@ import type { BloodTest } from '@/lib/db';
 
 interface Props {
   data: BloodTest[];
+  syncId?: string;
 }
 
-export function HormoneLevelChart({ data }: Props) {
+export function HormoneLevelChart({ data, syncId }: Props) {
   // Group data by hormone type
   const hormoneTypes = [...new Set(data.map(d => d.hormone))];
   const colors = ['#7c5cfc', '#ff6b9d', '#22c997', '#f5a623', '#4da6ff', '#b44dff'];
@@ -45,7 +46,7 @@ export function HormoneLevelChart({ data }: Props) {
   return (
     <div className="chart-container">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={merged} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+        <LineChart data={merged} syncId={syncId} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
           <XAxis
             dataKey="date"

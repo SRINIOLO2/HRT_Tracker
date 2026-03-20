@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Goal, type GoalMilestone } from '@/lib/db';
 import { format, differenceInDays } from 'date-fns';
-import { Plus, Target, Edit2, Trash2, Check, Calendar } from 'lucide-react';
+import { Plus, Target, Edit2, Trash2, Check, Calendar, CheckSquare, Square, AlertTriangle } from 'lucide-react';
 
 const categoryOptions = ['physical', 'mental', 'social', 'medical', 'milestone', 'other'];
 const categoryColors: Record<string, string> = {
@@ -24,6 +24,14 @@ export default function GoalsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<Omit<Goal, 'id'>>(emptyGoal);
   const [newMilestone, setNewMilestone] = useState('');
+  
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [batchEnabled, setBatchEnabled] = useState(false);
+
+  useEffect(() => {
+    setBatchEnabled(localStorage.getItem('hrt_batch_delete') === 'true');
+  }, []);
 
   function openAddForm() {
     setForm({ ...emptyGoal, createdAt: Date.now(), targetDate: Date.now() + 90 * 86400000 });
@@ -49,8 +57,24 @@ export default function GoalsPage() {
   }
 
   async function deleteGoal(id: number) {
-    if (confirm('Delete this goal?')) {
+    if (confirm('Delete this goal or event?')) {
       await db.goals.delete(id);
+    }
+  }
+
+  function toggleSelect(id: number) {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  }
+
+  async function batchDeleteSelected() {
+    if (selectedIds.size === 0) return;
+    if (confirm(`WARNING: You are about to delete ${selectedIds.size} goals/events.\n\nAre you sure you want to proceed?`)) {
+      await db.goals.bulkDelete(Array.from(selectedIds));
+      setIsBatchMode(false);
+      setSelectedIds(new Set());
     }
   }
 
@@ -102,13 +126,37 @@ export default function GoalsPage() {
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 className="page-title">Goals</h1>
-          <p className="page-subtitle">Set and track your personal goals</p>
+          <h1 className="page-title">Goals & Events</h1>
+          <p className="page-subtitle">Set goals or track notable events</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddForm}>
-          <Plus size={16} /> Add Goal
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {batchEnabled && goals.length > 0 && (
+            <button className={`btn ${isBatchMode ? 'btn-primary' : 'btn-ghost'}`} onClick={() => {
+              setIsBatchMode(!isBatchMode);
+              setSelectedIds(new Set());
+            }}>
+              {isBatchMode ? 'Cancel' : 'Select Multiple'}
+            </button>
+          )}
+          {!isBatchMode && (
+            <button className="btn btn-primary" onClick={openAddForm}>
+              <Plus size={16} /> Add Goal/Event
+            </button>
+          )}
+        </div>
       </div>
+
+      {isBatchMode && (
+        <div className="card mb-16" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--accent-danger-soft)', border: '1px solid var(--accent-danger)' }}>
+          <div>
+            <span style={{ fontWeight: 600 }}>{selectedIds.size} selected</span>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>Select multiple goals/events to batch delete.</div>
+          </div>
+          <button className="btn" style={{ background: 'var(--accent-danger)', color: 'white' }} disabled={selectedIds.size === 0} onClick={batchDeleteSelected}>
+            <AlertTriangle size={16} /> Batch Delete
+          </button>
+        </div>
+      )}
 
       {/* Active Goals */}
       {goals.length === 0 ? (
@@ -132,9 +180,14 @@ export default function GoalsPage() {
                   const daysLeft = differenceInDays(new Date(goal.targetDate), new Date());
                   const color = categoryColors[goal.category] || '#9ba1bc';
                   return (
-                    <div key={goal.id} className="card">
+                    <div key={goal.id} className="card" style={{ cursor: isBatchMode ? 'pointer' : 'default' }} onClick={() => isBatchMode && toggleSelect(goal.id!)}>
                       <div className="card-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          {isBatchMode && (
+                            <div style={{ color: selectedIds.has(goal.id!) ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}>
+                              {selectedIds.has(goal.id!) ? <CheckSquare size={20} /> : <Square size={20} />}
+                            </div>
+                          )}
                           <div className="card-icon" style={{ background: `${color}20`, color }}>
                             <Target size={18} />
                           </div>
@@ -151,11 +204,13 @@ export default function GoalsPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="list-actions">
-                          <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditForm(goal)}><Edit2 size={14} /></button>
-                          <button className="btn btn-success btn-icon btn-sm" onClick={() => toggleComplete(goal)}><Check size={14} /></button>
-                          <button className="btn btn-ghost btn-icon btn-sm" onClick={() => deleteGoal(goal.id!)} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
-                        </div>
+                        {!isBatchMode && (
+                          <div className="list-actions">
+                            <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); openEditForm(goal); }}><Edit2 size={14} /></button>
+                            <button className="btn btn-success btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); toggleComplete(goal); }}><Check size={14} /></button>
+                            <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); deleteGoal(goal.id!); }} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
+                          </div>
+                        )}
                       </div>
 
                       {goal.description && (
@@ -213,7 +268,12 @@ export default function GoalsPage() {
               <h2 className="section-title mb-16" style={{ color: 'var(--text-tertiary)' }}>Completed Goals</h2>
               <div className="card" style={{ padding: 0, opacity: 0.7 }}>
                 {completedGoals.map(goal => (
-                  <div key={goal.id} className="list-item">
+                  <div key={goal.id} className="list-item" style={{ cursor: isBatchMode ? 'pointer' : 'default' }} onClick={() => isBatchMode && toggleSelect(goal.id!)}>
+                    {isBatchMode && (
+                      <div style={{ marginRight: '12px', color: selectedIds.has(goal.id!) ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}>
+                        {selectedIds.has(goal.id!) ? <CheckSquare size={20} /> : <Square size={20} />}
+                      </div>
+                    )}
                     <div className="list-icon" style={{ background: 'var(--accent-success-soft)', color: 'var(--accent-success)' }}>
                       <Check size={18} />
                     </div>
@@ -221,7 +281,9 @@ export default function GoalsPage() {
                       <div className="list-title" style={{ textDecoration: 'line-through' }}>{goal.title}</div>
                       <div className="list-subtitle">{format(new Date(goal.targetDate), 'MMMM d, yyyy')}</div>
                     </div>
-                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => toggleComplete(goal)} title="Mark incomplete">↩</button>
+                    {!isBatchMode && (
+                      <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); toggleComplete(goal); }} title="Mark incomplete">↩</button>
+                    )}
                   </div>
                 ))}
               </div>

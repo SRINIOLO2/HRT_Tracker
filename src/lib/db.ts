@@ -10,7 +10,8 @@ export interface Medication {
   defaultUnit: string; // 'mg', 'ml', 'mcg', 'patch', 'pump'
   route: string; // 'oral', 'sublingual', 'injection', 'transdermal', 'topical'
   color: string; // hex color for UI identification
-  scheduleHours: number; // interval in hours between doses (e.g. 12, 24, 168 for weekly)
+  scheduleHours: number; // calculated interval in hours between doses (kept for backward compatibility and math)
+  scheduleUnit?: string; // 'hours', 'days'
   scheduleTime: string; // preferred time HH:MM
   active: boolean;
   notes: string;

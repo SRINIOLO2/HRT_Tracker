@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type BloodTest } from '@/lib/db';
 import { format } from 'date-fns';
-import { Plus, TestTubes, Edit2, Trash2 } from 'lucide-react';
+import { Plus, TestTubes, Edit2, Trash2, CheckSquare, Square, AlertTriangle } from 'lucide-react';
 import { HormoneLevelChart } from '@/components/charts/HormoneLevelChart';
 
 // Common hormones as suggestions — users can type any custom hormone name
@@ -26,6 +26,13 @@ export default function BloodTestsPage() {
   const bloodTests = useLiveQuery(() => db.bloodTests.orderBy('testDate').reverse().toArray()) || [];
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [batchEnabled, setBatchEnabled] = useState(false);
+
+  useEffect(() => {
+    setBatchEnabled(localStorage.getItem('hrt_batch_delete') === 'true');
+  }, []);
   const [form, setForm] = useState<Omit<BloodTest, 'id'>>(emptyTest);
 
   function openAddForm() {
@@ -57,6 +64,22 @@ export default function BloodTestsPage() {
     }
   }
 
+  function toggleSelect(id: number) {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  }
+
+  async function batchDeleteSelected() {
+    if (selectedIds.size === 0) return;
+    if (confirm(`WARNING: You are about to delete ${selectedIds.size} blood test results.\n\nAre you sure you want to proceed?`)) {
+      await db.bloodTests.bulkDelete(Array.from(selectedIds));
+      setIsBatchMode(false);
+      setSelectedIds(new Set());
+    }
+  }
+
   return (
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -64,13 +87,37 @@ export default function BloodTestsPage() {
           <h1 className="page-title">Blood Tests</h1>
           <p className="page-subtitle">Track your hormone levels over time</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddForm}>
-          <Plus size={16} /> Add Result
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {batchEnabled && bloodTests.length > 0 && (
+            <button className={`btn ${isBatchMode ? 'btn-primary' : 'btn-ghost'}`} onClick={() => {
+              setIsBatchMode(!isBatchMode);
+              setSelectedIds(new Set());
+            }}>
+              {isBatchMode ? 'Cancel' : 'Select Multiple'}
+            </button>
+          )}
+          {!isBatchMode && (
+            <button className="btn btn-primary" onClick={openAddForm}>
+              <Plus size={16} /> Add Result
+            </button>
+          )}
+        </div>
       </div>
 
+      {isBatchMode && (
+        <div className="card mb-16" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--accent-danger-soft)', border: '1px solid var(--accent-danger)' }}>
+          <div>
+            <span style={{ fontWeight: 600 }}>{selectedIds.size} selected</span>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>Select multiple results to batch delete.</div>
+          </div>
+          <button className="btn" style={{ background: 'var(--accent-danger)', color: 'white' }} disabled={selectedIds.size === 0} onClick={batchDeleteSelected}>
+            <AlertTriangle size={16} /> Batch Delete
+          </button>
+        </div>
+      )}
+
       {/* Chart */}
-      {bloodTests.length > 0 && (
+      {bloodTests.length > 0 && !isBatchMode && (
         <div className="card mb-16">
           <div className="card-header">
             <h3 className="card-title">Hormone Trends</h3>
@@ -94,7 +141,12 @@ export default function BloodTestsPage() {
       ) : (
         <div className="card" style={{ padding: 0 }}>
           {bloodTests.map((test) => (
-            <div key={test.id} className="list-item">
+            <div key={test.id} className="list-item" style={{ cursor: isBatchMode ? 'pointer' : 'default' }} onClick={() => isBatchMode && toggleSelect(test.id!)}>
+              {isBatchMode && (
+                <div style={{ marginRight: '12px', color: selectedIds.has(test.id!) ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}>
+                  {selectedIds.has(test.id!) ? <CheckSquare size={20} /> : <Square size={20} />}
+                </div>
+              )}
               <div className="list-icon" style={{ background: 'var(--accent-success-soft)', color: 'var(--accent-success)' }}>
                 <TestTubes size={18} />
               </div>
@@ -111,10 +163,12 @@ export default function BloodTestsPage() {
                   {format(new Date(test.testDate), 'MMMM d, yyyy')}
                 </div>
               </div>
-              <div className="list-actions">
-                <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditForm(test)}><Edit2 size={14} /></button>
-                <button className="btn btn-ghost btn-icon btn-sm" onClick={() => deleteTest(test.id!)} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
-              </div>
+              {!isBatchMode && (
+                <div className="list-actions">
+                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); openEditForm(test); }}><Edit2 size={14} /></button>
+                  <button className="btn btn-ghost btn-icon btn-sm" onClick={(e) => { e.stopPropagation(); deleteTest(test.id!); }} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
+                </div>
+              )}
             </div>
           ))}
         </div>

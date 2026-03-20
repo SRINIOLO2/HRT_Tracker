@@ -14,7 +14,7 @@ const defaultColors = ['#7c5cfc', '#ff6b9d', '#22c997', '#f5a623', '#4da6ff', '#
 
 const emptyMed: Omit<Medication, 'id'> = {
   name: '', type: '', defaultDose: 0, defaultUnit: 'mg', route: 'oral',
-  color: '#7c5cfc', scheduleHours: 24, scheduleTime: '09:00',
+  color: '#7c5cfc', scheduleHours: 24, scheduleUnit: 'hours', scheduleTime: '09:00',
   active: true, notes: '', createdAt: Date.now(),
 };
 
@@ -29,29 +29,48 @@ export default function MedicationsPage() {
   const [showDoseModal, setShowDoseModal] = useState(false);
   const [doseForMed, setDoseForMed] = useState<Medication | null>(null);
   const [editingDoseId, setEditingDoseId] = useState<number | null>(null);
-  const [doseForm, setDoseForm] = useState({ dose: 0, unit: 'mg', notes: '', forgotten: false });
+  const [doseForm, setDoseForm] = useState({ 
+    dose: 0, 
+    unit: 'mg', 
+    notes: '', 
+    forgotten: false,
+    takenAtDate: format(Date.now(), 'yyyy-MM-dd'),
+    takenAtTime: format(Date.now(), 'HH:mm')
+  });
+
+  const [scheduleInputValue, setScheduleInputValue] = useState(24);
 
   const [batchMode, setBatchMode] = useState(false);
   const [selectedDoses, setSelectedDoses] = useState<Set<number>>(new Set());
+  const [batchEnabled, setBatchEnabled] = useState(false);
+
+  useEffect(() => {
+    setBatchEnabled(localStorage.getItem('hrt_batch_delete') === 'true');
+  }, []);
 
   function openAddForm() {
     setForm({ ...emptyMed, createdAt: Date.now(), color: defaultColors[medications.length % defaultColors.length] });
+    setScheduleInputValue(24);
     setEditingId(null);
     setShowForm(true);
   }
 
   function openEditForm(med: Medication) {
-    setForm({ ...med });
+    setForm({ ...med, scheduleUnit: med.scheduleUnit || 'hours' });
+    setScheduleInputValue(med.scheduleUnit === 'days' ? med.scheduleHours / 24 : med.scheduleHours);
     setEditingId(med.id!);
     setShowForm(true);
   }
 
   async function saveMedication() {
     if (!form.name.trim()) return;
+    const computedHours = form.scheduleUnit === 'days' ? scheduleInputValue * 24 : scheduleInputValue;
+    const finalForm = { ...form, scheduleHours: computedHours };
+
     if (editingId) {
-      await db.medications.update(editingId, form);
+      await db.medications.update(editingId, finalForm);
     } else {
-      await db.medications.add(form);
+      await db.medications.add(finalForm);
     }
     setShowForm(false);
     setEditingId(null);
@@ -66,7 +85,14 @@ export default function MedicationsPage() {
 
   function openDoseLog(med: Medication) {
     setDoseForMed(med);
-    setDoseForm({ dose: med.defaultDose, unit: med.defaultUnit, notes: '', forgotten: false });
+    setDoseForm({ 
+      dose: med.defaultDose, 
+      unit: med.defaultUnit, 
+      notes: '', 
+      forgotten: false,
+      takenAtDate: format(Date.now(), 'yyyy-MM-dd'),
+      takenAtTime: format(Date.now(), 'HH:mm')
+    });
     setEditingDoseId(null);
     setShowDoseModal(true);
   }
@@ -74,7 +100,15 @@ export default function MedicationsPage() {
   function openEditDoseLog(dose: DoseLog, med: Medication | undefined) {
     if (!med) return;
     setDoseForMed(med);
-    setDoseForm({ dose: dose.dose, unit: dose.unit, notes: dose.notes, forgotten: dose.forgotten });
+    const doseDate = new Date(dose.takenAt);
+    setDoseForm({ 
+      dose: dose.dose, 
+      unit: dose.unit, 
+      notes: dose.notes, 
+      forgotten: dose.forgotten,
+      takenAtDate: format(doseDate, 'yyyy-MM-dd'),
+      takenAtTime: format(doseDate, 'HH:mm')
+    });
     setEditingDoseId(dose.id!);
     setShowDoseModal(true);
   }
@@ -82,12 +116,21 @@ export default function MedicationsPage() {
   async function saveDoseLog() {
     if (!doseForMed) return;
     
+    // Parse combined date and time
+    const dateTimeString = `${doseForm.takenAtDate}T${doseForm.takenAtTime}`;
+    let finalTakenAt = Date.now();
+    try {
+      finalTakenAt = new Date(dateTimeString).getTime();
+      if (isNaN(finalTakenAt)) finalTakenAt = Date.now();
+    } catch(e) {}
+
     if (editingDoseId) {
       await db.doseLogs.update(editingDoseId, {
         dose: doseForm.dose,
         unit: doseForm.unit,
         notes: doseForm.notes,
         forgotten: doseForm.forgotten,
+        takenAt: finalTakenAt,
       });
     } else {
       await db.doseLogs.add({
@@ -96,7 +139,7 @@ export default function MedicationsPage() {
         dose: doseForm.dose,
         unit: doseForm.unit,
         route: doseForMed.route,
-        takenAt: Date.now(),
+        takenAt: finalTakenAt,
         forgotten: doseForm.forgotten,
         late: false,
         notes: doseForm.notes,
@@ -132,13 +175,13 @@ export default function MedicationsPage() {
     await db.doseLogs.add({
       medicationId: med.id!,
       medicationName: med.name,
-      dose: med.defaultDose,
+      dose: 0,
       unit: med.defaultUnit,
       route: med.route,
       takenAt: Date.now(),
       forgotten: true,
       late: false,
-      notes: 'Marked as forgotten',
+      notes: 'Marked as skipped/forgotten',
     });
   }
 
@@ -184,8 +227,8 @@ export default function MedicationsPage() {
                 <button className="btn btn-success btn-sm" onClick={() => openDoseLog(med)} title="Log dose">
                   <Check size={14} /> Taken
                 </button>
-                <button className="btn btn-ghost btn-sm" onClick={() => markForgotten(med)} title="Mark forgotten" style={{ color: 'var(--accent-warning)' }}>
-                  <AlertCircle size={14} />
+                <button className="btn btn-secondary btn-sm" onClick={() => markForgotten(med)} title="Mark missed/forgotten" style={{ color: 'var(--text-secondary)' }}>
+                  <AlertCircle size={14} /> Missed
                 </button>
                 <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditForm(med)}><Edit2 size={14} /></button>
                 <button className="btn btn-ghost btn-icon btn-sm" onClick={() => deleteMedication(med.id!)} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
@@ -201,15 +244,17 @@ export default function MedicationsPage() {
           <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 className="section-title">Dose History</h2>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {batchMode ? (
-                <>
-                  <button className="btn btn-secondary btn-sm" onClick={() => { setBatchMode(false); setSelectedDoses(new Set()); }}>Cancel</button>
-                  <button className="btn btn-danger btn-sm" onClick={batchDeleteSelected} disabled={selectedDoses.size === 0}>
-                    <Trash2 size={14} /> Delete Selected ({selectedDoses.size})
-                  </button>
-                </>
-              ) : (
-                <button className="btn btn-ghost btn-sm" onClick={() => setBatchMode(true)}>Select Multiple</button>
+              {batchEnabled && (
+                batchMode ? (
+                  <>
+                    <button className="btn btn-secondary btn-sm" onClick={() => { setBatchMode(false); setSelectedDoses(new Set()); }}>Cancel</button>
+                    <button className="btn btn-danger btn-sm" onClick={batchDeleteSelected} disabled={selectedDoses.size === 0}>
+                      <Trash2 size={14} /> Delete Selected ({selectedDoses.size})
+                    </button>
+                  </>
+                ) : (
+                  <button className="btn btn-ghost btn-sm" onClick={() => setBatchMode(true)}>Select Multiple</button>
+                )
               )}
             </div>
           </div>
@@ -227,8 +272,9 @@ export default function MedicationsPage() {
                     />
                   )}
                   <div className="list-icon" style={{
-                    background: dose.forgotten ? 'var(--accent-danger-soft)' : 'var(--accent-success-soft)',
-                    color: dose.forgotten ? 'var(--accent-danger)' : 'var(--accent-success)',
+                    background: dose.forgotten ? 'var(--accent-warning-soft)' : 'var(--accent-success-soft)',
+                    color: dose.forgotten ? 'var(--accent-warning)' : 'var(--accent-success)',
+                    border: 'none'
                   }}>
                     {dose.forgotten ? <AlertCircle size={18} /> : <CalendarCheck size={18} />}
                   </div>
@@ -301,12 +347,18 @@ export default function MedicationsPage() {
             </div>
 
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Every (hours)</label>
-                <input className="form-input" type="number" value={form.scheduleHours || ''} onChange={e => setForm({ ...form, scheduleHours: parseInt(e.target.value) || 24 })} />
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Every (Interval)</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input className="form-input" type="number" step="any" value={scheduleInputValue || ''} onChange={e => setScheduleInputValue(parseFloat(e.target.value) || 0)} style={{ flex: 2 }} />
+                  <select className="form-select" value={form.scheduleUnit || 'hours'} onChange={e => setForm({ ...form, scheduleUnit: e.target.value })} style={{ flex: 1 }}>
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                  </select>
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Preferred Time</label>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Preferred Time (Optional)</label>
                 <input className="form-input" type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
               </div>
             </div>
@@ -334,15 +386,36 @@ export default function MedicationsPage() {
 
             <div className="form-row">
               <div className="form-group">
+                <label className="form-label">Date</label>
+                <input className="form-input" type="date" value={doseForm.takenAtDate} onChange={e => setDoseForm({ ...doseForm, takenAtDate: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Time</label>
+                <input className="form-input" type="time" value={doseForm.takenAtTime} onChange={e => setDoseForm({ ...doseForm, takenAtTime: e.target.value })} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
                 <label className="form-label">Dose</label>
-                <input className="form-input" type="number" step="0.01" value={doseForm.dose || ''} onChange={e => setDoseForm({ ...doseForm, dose: parseFloat(e.target.value) || 0 })} />
+                <input className="form-input" type="number" step="0.01" value={doseForm.dose === 0 && doseForm.forgotten ? '' : doseForm.dose} onChange={e => setDoseForm({ ...doseForm, dose: parseFloat(e.target.value) || 0 })} disabled={doseForm.forgotten} />
               </div>
               <div className="form-group">
                 <label className="form-label">Unit</label>
-                <select className="form-select" value={doseForm.unit} onChange={e => setDoseForm({ ...doseForm, unit: e.target.value })}>
+                <select className="form-select" value={doseForm.unit} onChange={e => setDoseForm({ ...doseForm, unit: e.target.value })} disabled={doseForm.forgotten}>
                   {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="checkbox" checked={doseForm.forgotten} onChange={e => {
+                  const isForgotten = e.target.checked;
+                  setDoseForm({ ...doseForm, forgotten: isForgotten, dose: isForgotten ? 0 : doseForMed.defaultDose });
+                }} />
+                Mark as Missed/Forgotten
+              </label>
             </div>
 
             <div className="form-group">
