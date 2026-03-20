@@ -2,7 +2,7 @@
 
 A privacy-first, offline-capable health tracking app for hormone medication management.
 
-**Version:** 0.2.0
+**Version:** 0.3.0
 
 ---
 
@@ -76,7 +76,18 @@ npm run build
 
 ## 📋 Changelog
 
+### v0.3.0
+
+- **Dashboard Customization:** Added layout reordering (drag & drop) and visibility toggles for sections
+- **CSV Data Management:** Implemented CSV Export and Import for all logs (including a downloadable template)
+- **Graph Synchronization:** Added optional timeline locking for Hormone and Mood trend graphs
+- **Batch Deletion:** New global "Batch Mode" toggle in settings to enable safety-first bulk removal across all trackers
+- **UI Improvements:** Enhanced visibility for forgotten doses and fixed dark mode contrast issues
+- **Medication Cadence:** Added support for flexible days/hours scheduling (e.g., "3.5 days")
+- **GitHub Integration:** Linked app version in Settings to official GitHub repository releases
+
 ### v0.2.0
+
 - Added Events/Timeline page with anniversary reminders
 - Moved theme toggle from sidebar to Settings
 - Added gel and patch as medication delivery routes
@@ -85,6 +96,7 @@ npm run build
 - Created README with tech rationale
 
 ### v0.1.0
+
 - Initial build: Dashboard, Medications, Blood Tests, Mood, Goals, Settings
 - Dexie.js database with offline-first architecture
 - Recharts visualizations for hormone levels and mood trends
