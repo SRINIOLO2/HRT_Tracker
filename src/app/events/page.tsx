@@ -280,8 +280,8 @@ export default function EventsPage() {
 
       {/* Add/Edit Event Modal */}
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}>
+          <div className="modal">
             <h2 className="modal-title">{editingId ? 'Edit Event' : 'Add Event'}</h2>
 
             <div className="form-group">
@@ -303,8 +303,11 @@ export default function EventsPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Description (optional)</label>
-              <textarea className="form-textarea" value={form.description} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, description: e.target.value })} placeholder="What happened? Why is this significant?" />
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Description (optional)</span>
+                <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.description?.length || 0}/500</span>
+              </label>
+              <textarea className="form-textarea" maxLength={500} value={form.description} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, description: e.target.value })} placeholder="What happened? Why is this significant?" />
             </div>
 
             <div className="form-group">

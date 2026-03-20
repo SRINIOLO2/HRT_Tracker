@@ -8,7 +8,7 @@ import {
   Plus, Pill, Check, X, Clock, Edit2, Trash2, AlertCircle, CalendarCheck,
 } from 'lucide-react';
 
-const routeOptions = ['oral', 'sublingual', 'injection', 'transdermal', 'topical', 'gel', 'patch', 'implant'];
+const routeOptions = ['oral', 'sublingual', 'injection', 'transdermal', 'topical', 'gel', 'patch', 'implant', 'rectal', 'suppository'];
 const unitOptions = ['mg', 'ml', 'mcg', 'patch', 'pump', 'IU'];
 const defaultColors = ['#7c5cfc', '#ff6b9d', '#22c997', '#f5a623', '#4da6ff', '#b44dff', '#ff8a50', '#69db7c'];
 
@@ -44,11 +44,17 @@ export default function MedicationsPage() {
   const [selectedDoses, setSelectedDoses] = useState<Set<number>>(new Set());
   const [batchEnabled, setBatchEnabled] = useState(false);
 
+  const [formError, setFormError] = useState('');
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
+  const [doseError, setDoseError] = useState('');
+
   useEffect(() => {
     setBatchEnabled(localStorage.getItem('hrt_batch_delete') === 'true');
   }, []);
 
   function openAddForm() {
+    setFormError('');
+    setShowOptionalFields(false);
     setForm({ ...emptyMed, createdAt: Date.now(), color: defaultColors[medications.length % defaultColors.length] });
     setScheduleInputValue(24);
     setEditingId(null);
@@ -56,6 +62,8 @@ export default function MedicationsPage() {
   }
 
   function openEditForm(med: Medication) {
+    setFormError('');
+    setShowOptionalFields(false);
     setForm({ ...med, scheduleUnit: med.scheduleUnit || 'hours' });
     setScheduleInputValue(med.scheduleUnit === 'days' ? med.scheduleHours / 24 : med.scheduleHours);
     setEditingId(med.id!);
@@ -63,7 +71,12 @@ export default function MedicationsPage() {
   }
 
   async function saveMedication() {
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) { setFormError('Name is required.'); return; }
+    if (!form.type.trim()) { setFormError('Type / Category is required.'); return; }
+    if (form.defaultDose === 0 || isNaN(form.defaultDose)) { setFormError('A valid dosage amount is required.'); return; }
+    if (scheduleInputValue <= 0 || isNaN(scheduleInputValue)) { setFormError('A valid interval is required.'); return; }
+    
+    setFormError('');
     const computedHours = form.scheduleUnit === 'days' ? scheduleInputValue * 24 : scheduleInputValue;
     const finalForm = { ...form, scheduleHours: computedHours };
 
@@ -84,6 +97,7 @@ export default function MedicationsPage() {
   }
 
   function openDoseLog(med: Medication) {
+    setDoseError('');
     setDoseForMed(med);
     setDoseForm({ 
       dose: med.defaultDose, 
@@ -99,6 +113,7 @@ export default function MedicationsPage() {
 
   function openEditDoseLog(dose: DoseLog, med: Medication | undefined) {
     if (!med) return;
+    setDoseError('');
     setDoseForMed(med);
     const doseDate = new Date(dose.takenAt);
     setDoseForm({ 
@@ -115,6 +130,9 @@ export default function MedicationsPage() {
 
   async function saveDoseLog() {
     if (!doseForMed) return;
+    if (doseForm.dose === 0 && !doseForm.forgotten) { setDoseError('A valid dose amount is required.'); return; }
+    
+    setDoseError('');
     
     // Parse combined date and time
     const dateTimeString = `${doseForm.takenAtDate}T${doseForm.takenAtTime}`;
@@ -306,9 +324,11 @@ export default function MedicationsPage() {
 
       {/* Add/Edit Medication Modal */}
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}>
+          <div className="modal">
             <h2 className="modal-title">{editingId ? 'Edit Medication' : 'Add Medication'}</h2>
+            
+            {formError && <div style={{ color: 'var(--accent-danger)', fontSize: '0.9rem', marginBottom: '1rem' }}>{formError}</div>}
 
             <div className="form-group">
               <label className="form-label">Medication Name</label>
@@ -322,11 +342,11 @@ export default function MedicationsPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Default Dose</label>
+                <label className="form-label">Dosage <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <input className="form-input" type="number" step="0.01" value={form.defaultDose || ''} onChange={e => setForm({ ...form, defaultDose: parseFloat(e.target.value) || 0 })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Unit</label>
+                <label className="form-label">Unit <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <select className="form-select" value={form.defaultUnit} onChange={e => setForm({ ...form, defaultUnit: e.target.value })}>
                   {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
@@ -334,21 +354,8 @@ export default function MedicationsPage() {
             </div>
 
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Route</label>
-                <select className="form-select" value={form.route} onChange={e => setForm({ ...form, route: e.target.value })}>
-                  {routeOptions.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Color</label>
-                <input className="form-color-input" type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} />
-              </div>
-            </div>
-
-            <div className="form-row">
               <div className="form-group" style={{ flex: 1 }}>
-                <label className="form-label">Every (Interval)</label>
+                <label className="form-label">Every (Interval) <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input className="form-input" type="number" step="any" value={scheduleInputValue || ''} onChange={e => setScheduleInputValue(parseFloat(e.target.value) || 0)} style={{ flex: 2 }} />
                   <select className="form-select" value={form.scheduleUnit || 'hours'} onChange={e => setForm({ ...form, scheduleUnit: e.target.value })} style={{ flex: 1 }}>
@@ -357,16 +364,44 @@ export default function MedicationsPage() {
                   </select>
                 </div>
               </div>
-              <div className="form-group" style={{ flex: 1 }}>
-                <label className="form-label">Preferred Time (Optional)</label>
-                <input className="form-input" type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
-              </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Notes</label>
-              <textarea className="form-textarea" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any notes about this medication..." />
-            </div>
+            <button 
+              type="button" 
+              onClick={() => setShowOptionalFields(!showOptionalFields)} 
+              style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', padding: '0', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.9rem', marginBottom: '16px', fontWeight: 'bold' }}>
+              {showOptionalFields ? '▼ Hide Optional Fields' : '▶ Show Optional Fields'}
+            </button>
+
+            {showOptionalFields && (
+              <>
+                <div className="form-row">
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label className="form-label">Route</label>
+                    <select className="form-select" value={form.route} onChange={e => setForm({ ...form, route: e.target.value })}>
+                      {routeOptions.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label className="form-label">Preferred Time</label>
+                    <input className="form-input" type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Color</label>
+                  <input className="form-color-input" type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Notes</span>
+                    <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.notes?.length || 0}/500</span>
+                  </label>
+                  <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any notes about this medication..." />
+                </div>
+              </>
+            )}
 
             <div className="form-actions">
               <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
@@ -380,9 +415,11 @@ export default function MedicationsPage() {
 
       {/* Log Dose Modal */}
       {showDoseModal && doseForMed && (
-        <div className="modal-overlay" onClick={() => setShowDoseModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowDoseModal(false); }}>
+          <div className="modal">
             <h2 className="modal-title">{editingDoseId ? 'Edit Dose Log' : 'Log Dose'} — {doseForMed.name}</h2>
+            
+            {doseError && <div style={{ color: 'var(--accent-danger)', fontSize: '0.9rem', marginBottom: '1rem' }}>{doseError}</div>}
 
             <div className="form-row">
               <div className="form-group">
@@ -419,8 +456,11 @@ export default function MedicationsPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Notes</label>
-              <textarea className="form-textarea" value={doseForm.notes} onChange={e => setDoseForm({ ...doseForm, notes: e.target.value })} placeholder="Optional notes..." />
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Notes</span>
+                <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{doseForm.notes?.length || 0}/500</span>
+              </label>
+              <textarea className="form-textarea" maxLength={500} value={doseForm.notes} onChange={e => setDoseForm({ ...doseForm, notes: e.target.value })} placeholder="Optional notes..." />
             </div>
 
             <div className="form-actions">

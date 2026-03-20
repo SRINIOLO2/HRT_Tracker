@@ -225,8 +225,8 @@ export default function MoodPage() {
 
       {/* Log Mood Modal */}
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}>
+          <div className="modal">
             <h2 className="modal-title">{editingId ? 'Edit Mood' : 'How are you feeling?'}</h2>
             
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
@@ -289,8 +289,11 @@ export default function MoodPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Notes (optional)</label>
-              <textarea className="form-textarea" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="How are you feeling today?" />
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Notes (optional)</span>
+                <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.notes?.length || 0}/500</span>
+              </label>
+              <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="How are you feeling today?" />
             </div>
 
             <div className="form-actions">
