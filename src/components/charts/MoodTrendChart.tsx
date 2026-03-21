@@ -15,7 +15,7 @@ export function MoodTrendChart({ data, syncId }: Props) {
   const chartData = sorted.map((d: MoodEntry) => ({
     date: format(new Date(d.createdAt), 'MMM d'),
     mood: d.mood,
-    energy: d.energy,
+    energy: d.energy || null,
   }));
 
   if (data.length === 0) {
@@ -75,6 +75,7 @@ export function MoodTrendChart({ data, syncId }: Props) {
             strokeWidth={2}
             fill="url(#energyGradient)"
             name="Energy"
+            connectNulls={true}
           />
         </AreaChart>
       </ResponsiveContainer>
