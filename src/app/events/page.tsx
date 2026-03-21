@@ -201,24 +201,12 @@ export default function EventsPage() {
               <h2 className="section-title mb-16" style={{ position: 'sticky', top: '0', background: 'var(--bg-primary)', zIndex: 1, padding: '4px 0' }}>
                 {year}
               </h2>
-              <div style={{ borderLeft: '2px solid var(--border-primary)', marginLeft: '16px', paddingLeft: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {groupedByYear[year].map((event: LifeEvent) => {
                   const cat = getCategoryInfo(event.category);
                   return (
-                    <div key={event.id} className="card mb-16" style={{ position: 'relative' }}>
-                      {/* Timeline dot */}
-                      <div style={{
-                        position: 'absolute',
-                        left: '-33px',
-                        top: '20px',
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
-                        background: cat.color,
-                        border: '2px solid var(--bg-secondary)',
-                      }} />
-
-                      <div className="card-header" onClick={() => batchMode && toggleEventSelect(event.id!)} style={{ cursor: batchMode ? 'pointer' : 'default' }}>
+                    <div key={event.id} className="card mb-16" style={{ position: 'relative', borderLeft: `5px solid ${cat.color}` }}>
+                      <div className="card-header" onClick={() => batchMode && toggleEventSelect(event.id!)} style={{ cursor: batchMode ? 'pointer' : 'default', paddingBottom: '0' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
                           {batchMode && (
                             <input 

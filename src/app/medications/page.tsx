@@ -230,26 +230,29 @@ export default function MedicationsPage() {
       ) : (
         <div className="card" style={{ padding: 0 }}>
           {medications.map((med: Medication) => (
-            <div key={med.id} className="list-item">
-              <div className="list-icon" style={{ background: `${med.color}20`, color: med.color }}>
-                <Pill size={18} />
+            <div key={med.id} className="list-item" style={{ padding: '16px', gap: '16px', alignItems: 'center' }}>
+              <div style={{
+                width: '46px', height: '46px', borderRadius: '14px',
+                background: `linear-gradient(135deg, ${med.color}30, ${med.color}10)`,
+                color: med.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: `0 4px 12px ${med.color}15`
+              }}>
+                <Pill size={24} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
               </div>
-              <div className="list-content">
-                <div className="list-title">{med.name}</div>
-                <div className="list-subtitle">
-                  {med.defaultDose} {med.defaultUnit} · {med.route} · every {med.scheduleHours}h
-                  {med.scheduleTime && ` at ${med.scheduleTime}`}
+              <div className="list-content" style={{ flex: 1 }}>
+                <div className="list-title" style={{ fontSize: '1.1rem', fontWeight: 600 }}>{med.name}</div>
+                <div className="list-subtitle" style={{ fontSize: '0.85rem', marginTop: '2px' }}>
+                  {med.defaultDose}{med.defaultUnit} · {med.route}<br/>
+                  Every {med.scheduleHours < 24 ? `${med.scheduleHours} hrs` : `${Math.round(med.scheduleHours/24)} days`}
                 </div>
               </div>
-              <div className="list-actions">
-                <button className="btn btn-success btn-sm" onClick={() => openDoseLog(med)} title="Log dose">
-                  <Check size={14} /> Taken
+              <div className="list-actions" style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn btn-ghost btn-icon" onClick={() => openEditForm(med)} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none' }} title="Edit">
+                  <Edit2 size={16} />
                 </button>
-                <button className="btn btn-secondary btn-sm" onClick={() => markForgotten(med)} title="Mark missed/forgotten" style={{ color: 'var(--text-secondary)' }}>
-                  <AlertCircle size={14} /> Missed
+                <button className="btn btn-primary btn-icon" onClick={() => openDoseLog(med)} style={{ width: '36px', height: '36px', borderRadius: '50%', background: med.color, color: '#fff', border: 'none', boxShadow: `0 4px 12px ${med.color}40` }} title="Log Dose">
+                  <Check size={18} />
                 </button>
-                <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditForm(med)}><Edit2 size={14} /></button>
-                <button className="btn btn-ghost btn-icon btn-sm" onClick={() => deleteMedication(med.id!)} style={{ color: 'var(--accent-danger)' }}><Trash2 size={14} /></button>
               </div>
             </div>
           ))}
@@ -396,11 +399,18 @@ export default function MedicationsPage() {
               </div>
             )}
 
-            <div className="form-actions">
-              <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={saveMedication}>
-                {editingId ? 'Save Changes' : 'Add Medication'}
-              </button>
+            <div className="form-actions" style={{ justifyContent: editingId ? 'space-between' : 'flex-end', width: '100%' }}>
+              {editingId && (
+                 <button className="btn btn-ghost btn-icon" onClick={() => { deleteMedication(editingId); setShowForm(false); }} style={{ color: 'var(--accent-danger)' }} title="Delete Medication">
+                   <Trash2 size={20} />
+                 </button>
+              )}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={saveMedication}>
+                  {editingId ? 'Save Changes' : 'Add Medication'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
