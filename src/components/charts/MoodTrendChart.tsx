@@ -40,7 +40,7 @@ export function MoodTrendChart({ data, syncId }: Props) {
               <stop offset="95%" stopColor="#ff6b9d" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+
           <XAxis
             dataKey="date"
             tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}

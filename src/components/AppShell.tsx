@@ -17,13 +17,13 @@ import {
 import { startReminderChecker } from '@/lib/notifications';
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/medications', label: 'Medications', icon: Pill },
-  { href: '/blood-tests', label: 'Blood Tests', icon: TestTubes },
-  { href: '/mood', label: 'Mood', icon: SmilePlus },
-  { href: '/goals', label: 'Goals', icon: Target },
-  { href: '/events', label: 'Timeline', icon: CalendarHeart },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/', label: 'Dashboard', mobileLabel: 'Dash', icon: LayoutDashboard },
+  { href: '/medications', label: 'Medications', mobileLabel: 'Meds', icon: Pill },
+  { href: '/blood-tests', label: 'Blood Tests', mobileLabel: 'Tests', icon: TestTubes },
+  { href: '/mood', label: 'Mood', mobileLabel: 'Mood', icon: SmilePlus },
+  { href: '/goals', label: 'Goals', mobileLabel: 'Goals', icon: Target },
+  { href: '/events', label: 'Timeline', mobileLabel: 'Events', icon: CalendarHeart },
+  { href: '/settings', label: 'Settings', mobileLabel: 'Settings', icon: Settings },
 ];
 
 function Navigation() {
@@ -100,7 +100,7 @@ function Navigation() {
                   style={{ width: '100%', padding: '6px 4px' }}
                 >
                   <item.icon size={22} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%', textAlign: 'center' }}>{item.label}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%', textAlign: 'center' }}>{item.mobileLabel}</span>
                 </button>
               </Link>
             </li>

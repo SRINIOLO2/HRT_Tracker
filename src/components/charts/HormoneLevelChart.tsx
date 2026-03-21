@@ -47,7 +47,7 @@ export function HormoneLevelChart({ data, syncId }: Props) {
     <div className="chart-container">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={merged} syncId={syncId} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+
           <XAxis
             dataKey="date"
             tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
