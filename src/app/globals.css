@@ -512,6 +512,57 @@ body {
   gap: 12px;
 }
 
+/* ─── iOS Grouped Forms ─────────────────────────────────── */
+.ios-form-group {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.ios-form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+}
+
+.ios-form-row:last-child {
+  border-bottom: none;
+}
+
+.ios-form-label {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.ios-form-input, .ios-form-select {
+  flex: 1;
+  text-align: right;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  padding: 0;
+  min-width: 0;
+}
+
+.ios-form-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.ios-form-input:focus, .ios-form-select:focus {
+  color: var(--accent-primary);
+}
+
 .form-actions {
   display: flex;
   gap: 12px;

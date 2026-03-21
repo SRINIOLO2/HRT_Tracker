@@ -183,30 +183,29 @@ export default function BloodTestsPage() {
           <div className="modal">
             <h2 className="modal-title">{editingId ? 'Edit Blood Test' : 'Add Blood Test Result'}</h2>
 
-            <div className="form-group">
-              <label className="form-label">Test Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-              <input className="form-input" type="date" value={format(new Date(form.testDate), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, testDate: new Date(e.target.value).getTime() })} />
-            </div>
+            <div className="ios-form-group">
+              <div className="ios-form-row">
+                <label className="ios-form-label">Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <input className="ios-form-input" type="date" value={format(new Date(form.testDate), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, testDate: new Date(e.target.value).getTime() })} />
+              </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Hormone <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <input className="form-input" list="hormone-suggestions" value={form.hormone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, hormone: e.target.value })} placeholder="Type or select a hormone" />
+              <div className="ios-form-row">
+                <label className="ios-form-label">Hormone <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <input className="ios-form-input" list="hormone-suggestions" value={form.hormone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, hormone: e.target.value })} placeholder="Type or select" />
                 <datalist id="hormone-suggestions">
                   {hormoneSuggestions.map((h: string) => <option key={h} value={h} />)}
                 </datalist>
               </div>
-              <div className="form-group">
-                <label className="form-label">Unit <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <select className="form-select" value={form.unit} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, unit: e.target.value })}>
-                  {unitOptions.map((u: string) => <option key={u} value={u}>{u}</option>)}
-                </select>
+              
+              <div className="ios-form-row">
+                <label className="ios-form-label">Value <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <div style={{ display: 'flex', gap: '8px', flex: 1, justifyContent: 'flex-end' }}>
+                  <input className="ios-form-input" type="number" step="0.01" value={form.value || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, value: parseFloat(e.target.value) || 0 })} placeholder="0.0" style={{ width: '80px' }} />
+                  <select className="ios-form-select" value={form.unit} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, unit: e.target.value })} style={{ width: '80px' }}>
+                    {unitOptions.map((u: string) => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
               </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Value <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-              <input className="form-input" type="number" step="0.01" value={form.value || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, value: parseFloat(e.target.value) || 0 })} placeholder="Enter test value" />
             </div>
 
             <button 
@@ -217,31 +216,27 @@ export default function BloodTestsPage() {
             </button>
 
             {showOptionalFields && (
-              <>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Reference Min</label>
-                    <input className="form-input" type="number" step="0.01" value={form.referenceMin || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMin: parseFloat(e.target.value) || undefined })} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Reference Max</label>
-                    <input className="form-input" type="number" step="0.01" value={form.referenceMax || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMax: parseFloat(e.target.value) || undefined })} />
-                  </div>
+              <div className="ios-form-group">
+                <div className="ios-form-row">
+                  <label className="ios-form-label">Ref. Min</label>
+                  <input className="ios-form-input" type="number" step="0.01" value={form.referenceMin || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMin: parseFloat(e.target.value) || undefined })} placeholder="Optional" />
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">Lab</label>
-                  <input className="form-input" value={form.lab} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, lab: e.target.value })} placeholder="e.g. Quest Diagnostics" />
+                <div className="ios-form-row">
+                  <label className="ios-form-label">Ref. Max</label>
+                  <input className="ios-form-input" type="number" step="0.01" value={form.referenceMax || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMax: parseFloat(e.target.value) || undefined })} placeholder="Optional" />
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Notes</span>
+                <div className="ios-form-row">
+                  <label className="ios-form-label">Lab</label>
+                  <input className="ios-form-input" value={form.lab} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, lab: e.target.value })} placeholder="e.g. Quest Diagnostics" />
+                </div>
+                <div className="ios-form-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <label className="ios-form-label">Notes</label>
                     <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.notes?.length || 0}/500</span>
-                  </label>
-                  <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes..." />
+                  </div>
+                  <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes..." style={{ width: '100%', border: 'none', padding: 0, background: 'transparent' }} />
                 </div>
-              </>
+              </div>
             )}
 
             <div className="form-actions">

@@ -330,35 +330,32 @@ export default function MedicationsPage() {
             
             {formError && <div style={{ color: 'var(--accent-danger)', fontSize: '0.9rem', marginBottom: '1rem' }}>{formError}</div>}
 
-            <div className="form-group">
-              <label className="form-label">Medication Name <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-              <input className="form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Estradiol Valerate" />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Type / Category <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-              <input className="form-input" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} placeholder="e.g. Estrogen, Anti-androgen" />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Dosage <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <input className="form-input" type="number" step="0.01" value={form.defaultDose || ''} onChange={e => setForm({ ...form, defaultDose: parseFloat(e.target.value) || 0 })} />
+            <div className="ios-form-group">
+              <div className="ios-form-row">
+                <label className="ios-form-label">Name <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <input className="ios-form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Estradiol Valerate" />
               </div>
-              <div className="form-group">
-                <label className="form-label">Unit <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <select className="form-select" value={form.defaultUnit} onChange={e => setForm({ ...form, defaultUnit: e.target.value })}>
-                  {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
-              </div>
-            </div>
 
-            <div className="form-row">
-              <div className="form-group" style={{ flex: 1 }}>
-                <label className="form-label">Interval <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input className="form-input" type="number" step="any" value={scheduleInputValue || ''} onChange={e => setScheduleInputValue(parseFloat(e.target.value) || 0)} style={{ flex: 2 }} />
-                  <select className="form-select" value={form.scheduleUnit || 'hours'} onChange={e => setForm({ ...form, scheduleUnit: e.target.value })} style={{ flex: 1 }}>
+              <div className="ios-form-row">
+                <label className="ios-form-label">Category <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <input className="ios-form-input" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} placeholder="e.g. Estrogen, Anti-androgen" />
+              </div>
+
+              <div className="ios-form-row">
+                <label className="ios-form-label">Dosage <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <div style={{ display: 'flex', gap: '8px', flex: 1, justifyContent: 'flex-end' }}>
+                  <input className="ios-form-input" type="number" step="0.01" value={form.defaultDose || ''} onChange={e => setForm({ ...form, defaultDose: parseFloat(e.target.value) || 0 })} style={{ width: '60px' }} />
+                  <select className="ios-form-select" value={form.defaultUnit} onChange={e => setForm({ ...form, defaultUnit: e.target.value })} style={{ width: '70px' }}>
+                    {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="ios-form-row">
+                <label className="ios-form-label">Interval <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <div style={{ display: 'flex', gap: '8px', flex: 1, justifyContent: 'flex-end' }}>
+                  <input className="ios-form-input" type="number" step="any" value={scheduleInputValue || ''} onChange={e => setScheduleInputValue(parseFloat(e.target.value) || 0)} style={{ width: '60px' }} />
+                  <select className="ios-form-select" value={form.scheduleUnit || 'hours'} onChange={e => setForm({ ...form, scheduleUnit: e.target.value })} style={{ width: '80px' }}>
                     <option value="hours">Hours</option>
                     <option value="days">Days</option>
                   </select>
@@ -374,33 +371,29 @@ export default function MedicationsPage() {
             </button>
 
             {showOptionalFields && (
-              <>
-                <div className="form-row">
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Route</label>
-                    <select className="form-select" value={form.route} onChange={e => setForm({ ...form, route: e.target.value })}>
-                      {routeOptions.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Preferred Time</label>
-                    <input className="form-input" type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
-                  </div>
+              <div className="ios-form-group">
+                <div className="ios-form-row">
+                  <label className="ios-form-label">Route</label>
+                  <select className="ios-form-select" value={form.route} onChange={e => setForm({ ...form, route: e.target.value })}>
+                    {routeOptions.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">Color</label>
-                  <input className="form-color-input" type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} />
+                <div className="ios-form-row">
+                  <label className="ios-form-label">Preferred Time</label>
+                  <input className="ios-form-input" type="time" value={form.scheduleTime} onChange={e => setForm({ ...form, scheduleTime: e.target.value })} />
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Notes</span>
+                <div className="ios-form-row">
+                  <label className="ios-form-label">Color</label>
+                  <input className="form-color-input" type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} style={{ border: 'none', padding: 0, height: '28px', width: '28px', borderRadius: '50%' }} />
+                </div>
+                <div className="ios-form-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <label className="ios-form-label">Notes</label>
                     <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{form.notes?.length || 0}/500</span>
-                  </label>
-                  <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any notes about this medication..." />
+                  </div>
+                  <textarea className="form-textarea" maxLength={500} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any notes about this medication..." style={{ width: '100%', border: 'none', padding: 0, background: 'transparent' }} />
                 </div>
-              </>
+              </div>
             )}
 
             <div className="form-actions">
@@ -421,46 +414,38 @@ export default function MedicationsPage() {
             
             {doseError && <div style={{ color: 'var(--accent-danger)', fontSize: '0.9rem', marginBottom: '1rem' }}>{doseError}</div>}
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <input className="form-input" type="date" value={doseForm.takenAtDate} onChange={e => setDoseForm({ ...doseForm, takenAtDate: e.target.value })} />
+            <div className="ios-form-group">
+              <div className="ios-form-row">
+                <label className="ios-form-label">Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <input className="ios-form-input" type="date" value={doseForm.takenAtDate} onChange={e => setDoseForm({ ...doseForm, takenAtDate: e.target.value })} />
               </div>
-              <div className="form-group">
-                <label className="form-label">Time <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <input className="form-input" type="time" value={doseForm.takenAtTime} onChange={e => setDoseForm({ ...doseForm, takenAtTime: e.target.value })} />
+              <div className="ios-form-row">
+                <label className="ios-form-label">Time <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <input className="ios-form-input" type="time" value={doseForm.takenAtTime} onChange={e => setDoseForm({ ...doseForm, takenAtTime: e.target.value })} />
               </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Dose <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <input className="form-input" type="number" step="0.01" value={doseForm.dose === 0 && doseForm.forgotten ? '' : doseForm.dose} onChange={e => setDoseForm({ ...doseForm, dose: parseFloat(e.target.value) || 0 })} disabled={doseForm.forgotten} />
+              <div className="ios-form-row">
+                <label className="ios-form-label">Dose <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <div style={{ display: 'flex', gap: '8px', flex: 1, justifyContent: 'flex-end' }}>
+                  <input className="ios-form-input" type="number" step="0.01" value={doseForm.dose === 0 && doseForm.forgotten ? '' : doseForm.dose} onChange={e => setDoseForm({ ...doseForm, dose: parseFloat(e.target.value) || 0 })} disabled={doseForm.forgotten} style={{ width: '60px' }} />
+                  <select className="ios-form-select" value={doseForm.unit} onChange={e => setDoseForm({ ...doseForm, unit: e.target.value })} disabled={doseForm.forgotten} style={{ width: '70px' }}>
+                    {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Unit <span style={{color: 'var(--accent-danger)'}}>*</span></label>
-                <select className="form-select" value={doseForm.unit} onChange={e => setDoseForm({ ...doseForm, unit: e.target.value })} disabled={doseForm.forgotten}>
-                  {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="ios-form-row">
+                <label className="ios-form-label" style={{ width: 'auto' }}>Mark as Missed/Forgotten</label>
                 <input type="checkbox" checked={doseForm.forgotten} onChange={e => {
                   const isForgotten = e.target.checked;
                   setDoseForm({ ...doseForm, forgotten: isForgotten, dose: isForgotten ? 0 : doseForMed.defaultDose });
-                }} />
-                Mark as Missed/Forgotten
-              </label>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Notes</span>
-                <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{doseForm.notes?.length || 0}/500</span>
-              </label>
-              <textarea className="form-textarea" maxLength={500} value={doseForm.notes} onChange={e => setDoseForm({ ...doseForm, notes: e.target.value })} placeholder="Optional notes..." />
+                }} style={{ width: '20px', height: '20px', accentColor: 'var(--accent-primary)' }} />
+              </div>
+              <div className="ios-form-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <label className="ios-form-label">Notes</label>
+                  <span style={{ fontSize: '0.8em', color: 'var(--text-tertiary)' }}>{doseForm.notes?.length || 0}/500</span>
+                </div>
+                <textarea className="form-textarea" maxLength={500} value={doseForm.notes} onChange={e => setDoseForm({ ...doseForm, notes: e.target.value })} placeholder="Optional notes..." style={{ width: '100%', border: 'none', padding: 0, background: 'transparent' }} />
+              </div>
             </div>
 
             <div className="form-actions">
