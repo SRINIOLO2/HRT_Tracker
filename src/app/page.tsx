@@ -105,6 +105,7 @@ export default function DashboardPage() {
       route: med.route,
       takenAt: Date.now(),
       forgotten: false,
+      late: false,
       notes: 'Quick log from dashboard',
     });
   }
