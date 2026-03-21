@@ -8,7 +8,7 @@ import {
   Plus, Pill, Check, X, Clock, Edit2, Trash2, AlertCircle, CalendarCheck,
 } from 'lucide-react';
 
-const routeOptions = ['oral', 'sublingual', 'injection', 'transdermal', 'topical', 'gel', 'patch', 'implant', 'rectal', 'suppository'];
+const routeOptions = ['oral', 'sublingual', 'injection', 'transdermal', 'topical', 'gel', 'patch', 'implant', 'rectal'];
 const unitOptions = ['mg', 'ml', 'mcg', 'patch', 'pump', 'IU'];
 const defaultColors = ['#7c5cfc', '#ff6b9d', '#22c997', '#f5a623', '#4da6ff', '#b44dff', '#ff8a50', '#69db7c'];
 
@@ -331,12 +331,12 @@ export default function MedicationsPage() {
             {formError && <div style={{ color: 'var(--accent-danger)', fontSize: '0.9rem', marginBottom: '1rem' }}>{formError}</div>}
 
             <div className="form-group">
-              <label className="form-label">Medication Name</label>
+              <label className="form-label">Medication Name <span style={{color: 'var(--accent-danger)'}}>*</span></label>
               <input className="form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Estradiol Valerate" />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Type / Category</label>
+              <label className="form-label">Type / Category <span style={{color: 'var(--accent-danger)'}}>*</span></label>
               <input className="form-input" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} placeholder="e.g. Estrogen, Anti-androgen" />
             </div>
 
@@ -355,7 +355,7 @@ export default function MedicationsPage() {
 
             <div className="form-row">
               <div className="form-group" style={{ flex: 1 }}>
-                <label className="form-label">Every (Interval) <span style={{color: 'var(--accent-danger)'}}>*</span></label>
+                <label className="form-label">Interval <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input className="form-input" type="number" step="any" value={scheduleInputValue || ''} onChange={e => setScheduleInputValue(parseFloat(e.target.value) || 0)} style={{ flex: 2 }} />
                   <select className="form-select" value={form.scheduleUnit || 'hours'} onChange={e => setForm({ ...form, scheduleUnit: e.target.value })} style={{ flex: 1 }}>
@@ -423,22 +423,22 @@ export default function MedicationsPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Date</label>
+                <label className="form-label">Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <input className="form-input" type="date" value={doseForm.takenAtDate} onChange={e => setDoseForm({ ...doseForm, takenAtDate: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Time</label>
+                <label className="form-label">Time <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <input className="form-input" type="time" value={doseForm.takenAtTime} onChange={e => setDoseForm({ ...doseForm, takenAtTime: e.target.value })} />
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Dose</label>
+                <label className="form-label">Dose <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <input className="form-input" type="number" step="0.01" value={doseForm.dose === 0 && doseForm.forgotten ? '' : doseForm.dose} onChange={e => setDoseForm({ ...doseForm, dose: parseFloat(e.target.value) || 0 })} disabled={doseForm.forgotten} />
               </div>
               <div className="form-group">
-                <label className="form-label">Unit</label>
+                <label className="form-label">Unit <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <select className="form-select" value={doseForm.unit} onChange={e => setDoseForm({ ...doseForm, unit: e.target.value })} disabled={doseForm.forgotten}>
                   {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>

@@ -184,20 +184,20 @@ export default function BloodTestsPage() {
             <h2 className="modal-title">{editingId ? 'Edit Blood Test' : 'Add Blood Test Result'}</h2>
 
             <div className="form-group">
-              <label className="form-label">Test Date</label>
+              <label className="form-label">Test Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
               <input className="form-input" type="date" value={format(new Date(form.testDate), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, testDate: new Date(e.target.value).getTime() })} />
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Hormone</label>
+                <label className="form-label">Hormone <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <input className="form-input" list="hormone-suggestions" value={form.hormone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, hormone: e.target.value })} placeholder="Type or select a hormone" />
                 <datalist id="hormone-suggestions">
                   {hormoneSuggestions.map((h: string) => <option key={h} value={h} />)}
                 </datalist>
               </div>
               <div className="form-group">
-                <label className="form-label">Unit</label>
+                <label className="form-label">Unit <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <select className="form-select" value={form.unit} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, unit: e.target.value })}>
                   {unitOptions.map((u: string) => <option key={u} value={u}>{u}</option>)}
                 </select>
@@ -220,17 +220,17 @@ export default function BloodTestsPage() {
               <>
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Reference Min (optional)</label>
+                    <label className="form-label">Reference Min</label>
                     <input className="form-input" type="number" step="0.01" value={form.referenceMin || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMin: parseFloat(e.target.value) || undefined })} />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Reference Max (optional)</label>
+                    <label className="form-label">Reference Max</label>
                     <input className="form-input" type="number" step="0.01" value={form.referenceMax || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, referenceMax: parseFloat(e.target.value) || undefined })} />
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Lab (optional)</label>
+                  <label className="form-label">Lab</label>
                   <input className="form-input" value={form.lab} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, lab: e.target.value })} placeholder="e.g. Quest Diagnostics" />
                 </div>
 

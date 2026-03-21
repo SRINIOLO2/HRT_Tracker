@@ -236,17 +236,17 @@ export default function MoodPage() {
             
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
-                <label className="form-label">Date</label>
+                <label className="form-label">Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <input type="date" className="form-input" value={form.date} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, date: e.target.value })} required />
               </div>
               <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
-                <label className="form-label">Time</label>
+                <label className="form-label">Time <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <input type="time" className="form-input" value={form.time} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, time: e.target.value })} required />
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Mood</label>
+              <label className="form-label">Mood <span style={{color: 'var(--accent-danger)'}}>*</span></label>
               <div className="mood-scale">
                 {moodEmojis.map((m: any) => (
                   <button

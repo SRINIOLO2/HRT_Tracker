@@ -302,7 +302,7 @@ export default function GoalsPage() {
             <h2 className="modal-title">{editingId ? 'Edit Goal' : 'Add Goal'}</h2>
 
             <div className="form-group">
-              <label className="form-label">Goal Title</label>
+              <label className="form-label">Goal Title <span style={{color: 'var(--accent-danger)'}}>*</span></label>
               <input className="form-input" value={form.title} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, title: e.target.value })} placeholder="e.g. 6 months on HRT" />
             </div>
 

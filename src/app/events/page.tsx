@@ -285,17 +285,17 @@ export default function EventsPage() {
             <h2 className="modal-title">{editingId ? 'Edit Event' : 'Add Event'}</h2>
 
             <div className="form-group">
-              <label className="form-label">Event Title</label>
+              <label className="form-label">Event Title <span style={{color: 'var(--accent-danger)'}}>*</span></label>
               <input className="form-input" value={form.title} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, title: e.target.value })} placeholder='e.g. "Started HRT", "Changed doctor", "Top surgery"' />
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Date</label>
+                <label className="form-label">Date <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <input className="form-input" type="date" value={format(new Date(form.date), 'yyyy-MM-dd')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, date: new Date(e.target.value).getTime() })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Category</label>
+                <label className="form-label">Category <span style={{color: 'var(--accent-danger)'}}>*</span></label>
                 <select className="form-select" value={form.category} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm({ ...form, category: e.target.value })}>
                   {categoryOptions.map((c: any) => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>

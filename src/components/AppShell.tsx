@@ -92,14 +92,15 @@ function Navigation() {
       {/* Mobile Bottom Nav */}
       <nav className="bottom-nav">
         <ul className="bottom-nav-items">
-          {visibleNavItems.slice(0, 5).map((item) => (
-            <li key={item.href}>
-              <Link href={item.href}>
+          {visibleNavItems.map((item) => (
+            <li key={item.href} style={{ flex: 1, display: 'flex', justifyContent: 'center', minWidth: 0 }}>
+              <Link href={item.href} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                 <button
                   className={`bottom-nav-item ${pathname === item.href ? 'active' : ''}`}
+                  style={{ width: '100%', padding: '6px 4px' }}
                 >
                   <item.icon size={22} />
-                  <span>{item.label}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%', textAlign: 'center' }}>{item.label}</span>
                 </button>
               </Link>
             </li>
